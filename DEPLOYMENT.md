@@ -43,8 +43,10 @@ This guide explains how to deploy the User Management application on a server (e
 
 ## Configuration
 
-*   **Port**: By default, the app runs on port 3000. You can change this by modifying the start script or passing a port argument.
-*   **Reverse Proxy (Nginx)**: It is recommended to use Nginx as a reverse proxy to serve the app on port 80/443.
+*   **Port**: The app is configured to run on port **80** by default.
+    *   **Note**: On Linux/Ubuntu, binding to port 80 requires root privileges. You may need to run PM2 with `sudo` or use `authbind`.
+    *   If you are using a reverse proxy (Nginx), you might want to change this back to 3000 or configure Nginx to proxy to port 80 (though usually Nginx listens on 80).
+*   **Reverse Proxy (Nginx)**: If you run the app directly on port 80, you might not need Nginx unless you need SSL (HTTPS) or other features.
 
     Example Nginx Config:
     ```nginx
