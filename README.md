@@ -37,7 +37,7 @@ sudo apt install -y git
 ### 5. Clone Repository
 ```bash
 cd /opt
-sudo git clone https://github.com/nurwendi/pppoemanagement.git billing
+sudo git clone https://github.com/nurwendi/mikrotikbilling.git billing
 sudo chown -R $USER:$USER /opt/billing
 cd /opt/billing
 ```
