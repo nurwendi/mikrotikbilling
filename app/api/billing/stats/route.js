@@ -2,7 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { NextResponse } from 'next/server';
 
-const paymentsFile = path.join(process.cwd(), 'payments.json');
+const paymentsFile = path.join(process.cwd(), 'billing-payments.json');
 
 async function getPayments() {
     try {

@@ -4,6 +4,7 @@
     "username": "admin",
     "passwordHash": "$2b$10$fLx98oD5hIqMeKpya0IOPe2UPTdOcoytK97RXnUts0XbSb.iiMqIq",
     "role": "admin",
-    "createdAt": "2025-11-23T14:29:55.511Z"
+    "createdAt": "2025-11-23T14:29:55.511Z",
+    "fullName": "Administrator"
   }
 ]

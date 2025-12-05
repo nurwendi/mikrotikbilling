@@ -19,30 +19,36 @@ export async function PUT(request, { params }) {
         if (service) updateParams.push(`=service=${service}`);
         if (comment) updateParams.push(`=comment=${comment}`);
 
+        console.log(`PUT /api/pppoe/users/${id} - Updating user`);
+
+        // Perform the update
         await client.write('/ppp/secret/set', updateParams);
+        console.log('User update completed successfully');
 
-        // Disconnect user from active connections to apply changes immediately
-        // We need the username to find the active connection
-        let userName = name;
-        if (!userName) {
-            // If name wasn't updated, fetch the current name using the ID
-            const currentUser = await client.write('/ppp/secret/print', [`?.id=${id}`]);
-            if (currentUser && currentUser.length > 0) {
-                userName = currentUser[0].name;
-            }
-        }
-
-        if (userName) {
-            const activeConnections = await client.write('/ppp/active/print', [`?name=${userName}`]);
-            if (activeConnections && activeConnections.length > 0) {
-                for (const conn of activeConnections) {
-                    await client.write('/ppp/active/remove', [`=.id=${conn['.id']}`]);
+        // For online users, disconnect to apply changes immediately
+        // This is optional - if it fails, the update was still successful
+        if (name) {
+            try {
+                const activeConnections = await client.write('/ppp/active/print', [`?name=${name}`]);
+                if (activeConnections && Array.isArray(activeConnections) && activeConnections.length > 0) {
+                    for (const conn of activeConnections) {
+                        if (conn['.id']) {
+                            await client.write('/ppp/active/remove', [`=.id=${conn['.id']}`]);
+                        }
+                    }
+                    console.log(`Disconnected active session for ${name} to apply changes`);
+                } else {
+                    console.log(`User ${name} is offline, no session to disconnect`);
                 }
+            } catch (disconnectError) {
+                // User is offline or disconnect failed - this is fine, update already succeeded
+                console.log(`Disconnect skipped for ${name}: ${disconnectError.message}`);
             }
         }
 
         return NextResponse.json({ success: true });
     } catch (error) {
+        console.error('Update error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

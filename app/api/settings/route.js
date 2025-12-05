@@ -15,13 +15,14 @@ export async function GET() {
         connections: safeConnections,
         activeConnectionId: config.activeConnectionId,
         title: config.title || 'Mikrotik PPPoE Manager',
+        wanInterface: config.wanInterface || ''
     });
 }
 
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { connections, activeConnectionId, title } = body;
+        const { connections, activeConnectionId, title, wanInterface } = body;
 
         if (!connections || !Array.isArray(connections)) {
             return NextResponse.json({ error: "Connections array is required" }, { status: 400 });
@@ -49,7 +50,8 @@ export async function POST(request) {
         const newConfig = {
             connections: newConnections,
             activeConnectionId,
-            title
+            title,
+            wanInterface
         };
 
         saveConfig(newConfig);

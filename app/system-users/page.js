@@ -19,7 +19,11 @@ export default function SystemUsersPage() {
         isTechnician: false,
         agentRate: 0,
         technicianRate: 0,
-        prefix: ''
+        prefix: '',
+        fullName: '',
+        phone: '',
+        address: '',
+        agentNumber: ''
     });
     const [error, setError] = useState('');
 
@@ -77,14 +81,18 @@ export default function SystemUsersPage() {
     const handleEdit = (user) => {
         setSelectedUser(user);
         setFormData({
-            username: user.username,
+            username: user.username || '',
             password: '',
-            role: user.role,
+            role: user.role || 'viewer',
             isAgent: user.isAgent || false,
             isTechnician: user.isTechnician || false,
             agentRate: user.agentRate || 0,
             technicianRate: user.technicianRate || 0,
-            prefix: user.prefix || ''
+            prefix: user.prefix || '',
+            fullName: user.fullName || '',
+            phone: user.phone || '',
+            address: user.address || '',
+            agentNumber: user.agentNumber || ''
         });
         setEditMode(true);
         setShowModal(true);
@@ -125,7 +133,11 @@ export default function SystemUsersPage() {
             isTechnician: false,
             agentRate: 0,
             technicianRate: 0,
-            prefix: ''
+            prefix: '',
+            fullName: '',
+            phone: '',
+            address: '',
+            agentNumber: ''
         });
         setEditMode(false);
         setSelectedUser(null);
@@ -187,7 +199,11 @@ export default function SystemUsersPage() {
                                             <div className="bg-gray-100 p-2 rounded-full">
                                                 <User size={20} className="text-gray-600" />
                                             </div>
-                                            <span className="font-medium text-gray-900">{user.username}</span>
+                                            <div>
+                                                <div className="font-medium text-gray-900">{user.username}</div>
+                                                {user.fullName && <div className="text-xs text-gray-500">{user.fullName}</div>}
+                                                {user.phone && <div className="text-xs text-gray-500">{user.phone}</div>}
+                                            </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -225,6 +241,9 @@ export default function SystemUsersPage() {
                                             )}
                                             {user.prefix && (
                                                 <span className="text-xs text-gray-500">Prefix: {user.prefix}</span>
+                                            )}
+                                            {user.agentNumber && (
+                                                <span className="text-xs text-blue-600">ID: {user.agentNumber}</span>
                                             )}
                                         </div>
                                     </td>
@@ -280,10 +299,52 @@ export default function SystemUsersPage() {
                                     <input
                                         type="text"
                                         required
-                                        value={formData.username}
+                                        value={formData.username ?? ''}
                                         onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                                         className="w-full border border-gray-300 rounded p-2 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:opacity-50"
                                         disabled={editMode}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 text-gray-700">Full Name</label>
+                                    <input
+                                        type="text"
+                                        value={formData.fullName ?? ''}
+                                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                                        className="w-full border border-gray-300 rounded p-2 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                        placeholder="John Doe"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1 text-gray-700">Phone</label>
+                                        <input
+                                            type="text"
+                                            value={formData.phone ?? ''}
+                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            className="w-full border border-gray-300 rounded p-2 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                            placeholder="08123456789"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1 text-gray-700">Agent Number</label>
+                                        <input
+                                            type="text"
+                                            value={formData.agentNumber ?? ''}
+                                            onChange={(e) => setFormData({ ...formData, agentNumber: e.target.value })}
+                                            className="w-full border border-gray-300 rounded p-2 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                            placeholder="AG-001"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 text-gray-700">Address</label>
+                                    <textarea
+                                        value={formData.address ?? ''}
+                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                        className="w-full border border-gray-300 rounded p-2 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                        placeholder="Full address..."
+                                        rows="2"
                                     />
                                 </div>
                                 <div>
@@ -293,7 +354,7 @@ export default function SystemUsersPage() {
                                     <input
                                         type="password"
                                         required={!editMode}
-                                        value={formData.password}
+                                        value={formData.password ?? ''}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                         className="w-full border border-gray-300 rounded p-2 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                                     />
@@ -301,7 +362,7 @@ export default function SystemUsersPage() {
                                 <div>
                                     <label className="block text-sm font-medium mb-1 text-gray-700">System Role</label>
                                     <select
-                                        value={formData.role}
+                                        value={formData.role ?? 'viewer'}
                                         onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                         className="w-full border border-gray-300 rounded p-2 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                                     >
@@ -324,7 +385,7 @@ export default function SystemUsersPage() {
                                             <input
                                                 id="isAgent"
                                                 type="checkbox"
-                                                checked={formData.isAgent}
+                                                checked={formData.isAgent ?? false}
                                                 onChange={(e) => setFormData({ ...formData, isAgent: e.target.checked })}
                                                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                             />
@@ -338,7 +399,7 @@ export default function SystemUsersPage() {
                                                         type="number"
                                                         min="0"
                                                         max="100"
-                                                        value={formData.agentRate}
+                                                        value={formData.agentRate ?? 0}
                                                         onChange={(e) => setFormData({ ...formData, agentRate: Number(e.target.value) })}
                                                         className="w-full border border-gray-300 rounded p-2 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
                                                     />
@@ -349,7 +410,7 @@ export default function SystemUsersPage() {
                                                     <label className="block text-xs font-medium mb-1 text-gray-500">User Prefix (e.g. 08)</label>
                                                     <input
                                                         type="text"
-                                                        value={formData.prefix}
+                                                        value={formData.prefix ?? ''}
                                                         onChange={(e) => setFormData({ ...formData, prefix: e.target.value })}
                                                         className="w-full border border-gray-300 rounded p-2 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
                                                         placeholder="Optional"
@@ -368,7 +429,7 @@ export default function SystemUsersPage() {
                                             <input
                                                 id="isTechnician"
                                                 type="checkbox"
-                                                checked={formData.isTechnician}
+                                                checked={formData.isTechnician ?? false}
                                                 onChange={(e) => setFormData({ ...formData, isTechnician: e.target.checked })}
                                                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                             />
@@ -382,7 +443,7 @@ export default function SystemUsersPage() {
                                                         type="number"
                                                         min="0"
                                                         max="100"
-                                                        value={formData.technicianRate}
+                                                        value={formData.technicianRate ?? 0}
                                                         onChange={(e) => setFormData({ ...formData, technicianRate: Number(e.target.value) })}
                                                         className="w-full border border-gray-300 rounded p-2 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
                                                     />

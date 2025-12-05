@@ -1,6 +1,23 @@
 {
-  "connections": [],
-  "activeConnectionId": null,
+  "connections": [
+    {
+      "name": "Hudi",
+      "host": "192.168.22.254",
+      "port": "8728",
+      "user": "hudi",
+      "password": "32326655",
+      "id": "1764817362904"
+    },
+    {
+      "name": "boyad",
+      "host": "103.150.33.165",
+      "port": "18728",
+      "user": "hudi",
+      "password": "32326655",
+      "id": "1764854889067"
+    }
+  ],
+  "activeConnectionId": "1764817362904",
   "title": "Mikrotik Manager",
-  "language": "en"
+  "wanInterface": "00-SFP-Input"
 }

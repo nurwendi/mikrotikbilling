@@ -68,11 +68,41 @@ export async function POST(request) {
 
             // Find user's profile to get price
             const userProfile = profiles.find(p => p.name === user.profile);
-            const amount = userProfile?.price || 0;
+
+            // Parse price from comment field (format: "price:150000")
+            let amount = 0;
+            if (userProfile?.comment && userProfile.comment.includes('price:')) {
+                const match = userProfile.comment.match(/price:(\d+)/);
+                if (match) {
+                    amount = parseInt(match[1]);
+                }
+            }
 
             if (amount > 0) {
-                // Create invoice for the specified month
-                const invoiceDate = new Date(targetYear, targetMonth, 1);
+                // Create invoice for the specified month (in UTC to avoid timezone issues)
+                const invoiceDate = new Date(Date.UTC(targetYear, targetMonth, 1));
+
+                // Calculate arrears from past unpaid/postponed invoices
+                // Filter for invoices BEFORE the target invoice date
+                const pastInvoices = payments.filter(p =>
+                    p.username === user.name &&
+                    (p.status === 'pending' || p.status === 'postponed') &&
+                    new Date(p.date) < invoiceDate
+                );
+
+                let arrearsAmount = 0;
+                if (pastInvoices.length > 0) {
+                    arrearsAmount = pastInvoices.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+
+                    // Mark past invoices as merged
+                    pastInvoices.forEach(p => {
+                        const idx = payments.findIndex(pay => pay.id === p.id);
+                        if (idx !== -1) {
+                            payments[idx].status = 'merged';
+                            payments[idx].notes = (payments[idx].notes || '') + ` (Merged into new invoice)`;
+                        }
+                    });
+                }
 
                 // Format Invoice Number: INV/[yy]/[mm]/[cust number]/[no invoice]
                 const yy = String(targetYear).slice(-2);
@@ -83,15 +113,21 @@ export async function POST(request) {
                 const invoiceNumber = `INV/${yy}/${mm}/${custNumber}/${seq}`;
                 sequenceCounter++;
 
+                const monthName = invoiceDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                let notes = `Invoice for ${monthName}`;
+                if (arrearsAmount > 0) {
+                    notes += ` (Termasuk tunggakan: ${arrearsAmount})`;
+                }
+
                 const newPayment = {
-                    id: Date.now() + Math.random(),
+                    id: Date.now() + Math.random(), // Ensure unique ID
                     invoiceNumber: invoiceNumber,
                     username: user.name,
-                    amount: amount,
+                    amount: amount + arrearsAmount,
                     method: 'pending',
                     status: 'pending',
                     date: invoiceDate.toISOString(),
-                    notes: `Invoice for ${invoiceDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`
+                    notes: notes
                 };
 
                 payments.push(newPayment);

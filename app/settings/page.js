@@ -7,9 +7,11 @@ export default function SettingsPage() {
     const [settings, setSettings] = useState({
         connections: [],
         activeConnectionId: null,
+        wanInterface: '',
     });
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState(null);
+    const [interfaces, setInterfaces] = useState([]);
 
     // Modal/Form state for connection
     const [isEditing, setIsEditing] = useState(false);
@@ -24,7 +26,19 @@ export default function SettingsPage() {
 
     useEffect(() => {
         fetchSettings();
+        fetchInterfaces();
     }, []);
+
+    const fetchInterfaces = async () => {
+        try {
+            const res = await fetch('/api/interfaces');
+            if (res.ok) {
+                setInterfaces(await res.json());
+            }
+        } catch (error) {
+            console.error('Failed to fetch interfaces', error);
+        }
+    };
 
     const fetchSettings = async () => {
         try {
@@ -201,6 +215,37 @@ export default function SettingsPage() {
                             ))}
                         </div>
                     )}
+                </div>
+            </div>
+
+            {/* General Settings */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-6 border-b pb-4">General Settings</h2>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">WAN Interface (Internet Source)</label>
+                        <p className="text-sm text-gray-500 mb-2">Select the interface used for internet connection to monitor traffic.</p>
+                        <div className="flex gap-2">
+                            <select
+                                className="w-full max-w-md border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                                value={settings.wanInterface || ''}
+                                onChange={(e) => setSettings({ ...settings, wanInterface: e.target.value })}
+                            >
+                                <option value="">Select Interface</option>
+                                {interfaces.map(iface => (
+                                    <option key={iface.name} value={iface.name}>
+                                        {iface.name} {iface.disabled ? '(Disabled)' : ''}
+                                    </option>
+                                ))}
+                            </select>
+                            <button
+                                onClick={() => saveSettings({ wanInterface: settings.wanInterface })}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Users, Wifi, WifiOff, Cpu, HardDrive, Thermometer, Activity, ArrowUp, ArrowDown, RefreshCw, DollarSign, CreditCard, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 
 export default function DashboardPage() {
 
@@ -24,6 +25,7 @@ export default function DashboardPage() {
         },
         agentStats: null // New field for agent stats
     });
+    const [trafficData, setTrafficData] = useState([]);
     const [userRole, setUserRole] = useState(null);
     const [loading, setLoading] = useState(true);
     const [lastUpdate, setLastUpdate] = useState(new Date());
@@ -57,13 +59,38 @@ export default function DashboardPage() {
 
     const fetchStats = async () => {
         try {
-            const [dashboardRes, billingRes, agentStatsRes] = await Promise.all([
+            const [dashboardRes, billingRes, agentStatsRes, trafficRes] = await Promise.all([
                 fetch('/api/dashboard/stats'),
                 fetch('/api/billing/stats'),
-                fetch(`/api/billing/stats/agent?month=${new Date().getMonth()}&year=${new Date().getFullYear()}`)
+                fetch(`/api/billing/stats/agent?month=${new Date().getMonth()}&year=${new Date().getFullYear()}`),
+                fetch('/api/traffic')
             ]);
 
             const newStats = { ...stats };
+
+            if (trafficRes.ok) {
+                const data = await trafficRes.json();
+                // Process data for chart
+                // Data is cumulative bytes. We want to show usage over time.
+                // Or if it's just history of cumulative bytes, the line will always go up (until reset).
+                // User asked for "penggunaan traffik" (traffic usage).
+                // If we show cumulative, it shows total consumption.
+                // Let's format it nicely.
+                // Actually, if we want to show "speed" or "usage per interval", we need to calculate diff.
+                // But for "Last 7 Days", showing the cumulative growth or daily usage is good.
+                // Let's just show the raw cumulative data for now, or maybe calculate diff if possible.
+                // Given the data structure [{timestamp, rx, tx}], we can show the trend.
+
+                // Let's format timestamp to readable date
+                const formattedData = data.map(item => ({
+                    ...item,
+                    date: new Date(item.timestamp).toLocaleString(),
+                    // Convert to GB for better readability if large
+                    rxGB: parseFloat((item.rx / (1024 * 1024 * 1024)).toFixed(2)),
+                    txGB: parseFloat((item.tx / (1024 * 1024 * 1024)).toFixed(2))
+                }));
+                setTrafficData(formattedData);
+            }
 
             if (dashboardRes.ok) {
                 const data = await dashboardRes.json();
@@ -247,6 +274,62 @@ export default function DashboardPage() {
                     />
                 </div>
             </div>
+
+            {/* Internet Traffic Chart */}
+            {trafficData.length > 0 && (
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                        <Activity className="text-blue-600" /> Internet Traffic (Last 7 Days)
+                    </h2>
+                    <div className="h-[400px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={trafficData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="colorTx" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorRx" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <XAxis
+                                    dataKey="date"
+                                    tickFormatter={(str) => {
+                                        const date = new Date(str);
+                                        return `${date.getDate()}/${date.getMonth() + 1} ${date.getHours()}:${date.getMinutes()}`;
+                                    }}
+                                    minTickGap={50}
+                                />
+                                <YAxis tickFormatter={(val) => `${val} GB`} />
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <Tooltip
+                                    labelFormatter={(label) => new Date(label).toLocaleString()}
+                                    formatter={(value, name) => [`${value} GB`, name === 'txGB' ? 'Download' : 'Upload']}
+                                />
+                                <Legend />
+                                <Area
+                                    type="monotone"
+                                    dataKey="txGB"
+                                    name="Download"
+                                    stroke="#10B981"
+                                    fillOpacity={1}
+                                    fill="url(#colorTx)"
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="rxGB"
+                                    name="Upload"
+                                    stroke="#3B82F6"
+                                    fillOpacity={1}
+                                    fill="url(#colorRx)"
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

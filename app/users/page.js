@@ -261,6 +261,11 @@ export default function UsersPage() {
                     aVal = (a.service || '').toLowerCase();
                     bVal = (b.service || '').toLowerCase();
                     break;
+                case 'usage':
+                    // Sort by total usage (rx + tx)
+                    aVal = (a.usage?.rx || 0) + (a.usage?.tx || 0);
+                    bVal = (b.usage?.rx || 0) + (b.usage?.tx || 0);
+                    break;
                 default:
                     aVal = a[sortConfig.key] || '';
                     bVal = b[sortConfig.key] || '';
@@ -326,7 +331,7 @@ export default function UsersPage() {
         }
 
         try {
-            const url = editMode ? `/api/pppoe/users/${editingUserId}` : '/api/pppoe/users';
+            const url = editMode ? `/api/pppoe/users/${encodeURIComponent(editingUserId)}` : '/api/pppoe/users';
             const method = editMode ? 'PUT' : 'POST';
 
             const res = await fetch(url, {
@@ -388,7 +393,7 @@ export default function UsersPage() {
 
         // Fetch customer details
         try {
-            const res = await fetch(`/api/customers/${user.name}`);
+            const res = await fetch(`/api/customers/${encodeURIComponent(user.name)}`);
             const customerData = await res.json();
 
             setFormData({
@@ -527,6 +532,14 @@ export default function UsersPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const formatBytes = (bytes) => {
+        if (!bytes || bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
     return (
@@ -720,17 +733,26 @@ export default function UsersPage() {
                                         <ArrowUpDown size={14} />
                                     </div>
                                 </th>
+                                <th
+                                    onClick={() => sortData('usage')}
+                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Monthly Usage
+                                        <ArrowUpDown size={14} />
+                                    </div>
+                                </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-4 text-center text-gray-500">Loading...</td>
+                                    <td colSpan="7" className="px-6 py-4 text-center text-gray-500">Loading...</td>
                                 </tr>
                             ) : getSortedUsers().length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-4 text-center text-gray-500">No users found</td>
+                                    <td colSpan="7" className="px-6 py-4 text-center text-gray-500">No users found</td>
                                 </tr>
                             ) : (
                                 getSortedUsers().map((user) => (
@@ -760,6 +782,12 @@ export default function UsersPage() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {user.service || '-'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <div className="flex flex-col text-xs">
+                                                <span className="text-green-600">↓ {formatBytes(user.usage?.tx || 0)}</span>
+                                                <span className="text-blue-600">↑ {formatBytes(user.usage?.rx || 0)}</span>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                             <button

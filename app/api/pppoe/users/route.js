@@ -34,7 +34,14 @@ export async function GET(request) {
             }
         }
 
-        return NextResponse.json(users);
+        // Attach monthly usage data
+        const { getMonthlyUsage } = await import('@/lib/usage-tracker');
+        const usersWithUsage = await Promise.all(users.map(async (u) => {
+            const usage = await getMonthlyUsage(u.name);
+            return { ...u, usage };
+        }));
+
+        return NextResponse.json(usersWithUsage);
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

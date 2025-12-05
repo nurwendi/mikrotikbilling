@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 
-const PAYMENTS_FILE = path.join(process.cwd(), 'payments.json');
+const PAYMENTS_FILE = path.join(process.cwd(), 'billing-payments.json');
 const CUSTOMERS_FILE = path.join(process.cwd(), 'customer-data.json');
 const USERS_FILE = path.join(process.cwd(), 'data', 'users.json');
 

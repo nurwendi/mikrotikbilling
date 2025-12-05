@@ -2,7 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { NextResponse } from 'next/server';
 
-const paymentsFile = path.join(process.cwd(), 'payments.json');
+const paymentsFile = path.join(process.cwd(), 'billing-payments.json');
 
 async function getPayments() {
     try {
@@ -17,14 +17,15 @@ export async function PUT(request, { params }) {
     try {
         const { id } = await params;
         const body = await request.json();
-        const { status } = body;
+        const { status, amount, notes } = body;
 
         if (!status) {
             return NextResponse.json({ error: 'Status is required' }, { status: 400 });
         }
 
         let payments = await getPayments();
-        const paymentIndex = payments.findIndex(p => p.id === id);
+        // Convert both to string for comparison
+        const paymentIndex = payments.findIndex(p => String(p.id) === String(id));
 
         if (paymentIndex === -1) {
             return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
@@ -33,7 +34,9 @@ export async function PUT(request, { params }) {
         payments[paymentIndex] = {
             ...payments[paymentIndex],
             status: status,
-            date: status === 'completed' ? new Date().toISOString() : payments[paymentIndex].date // Update date if completed
+            date: status === 'completed' ? new Date().toISOString() : payments[paymentIndex].date, // Update date if completed
+            amount: amount || payments[paymentIndex].amount,
+            notes: notes !== undefined ? notes : payments[paymentIndex].notes
         };
 
         await fs.writeFile(paymentsFile, JSON.stringify(payments, null, 2));

@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 import { getUsers } from '@/lib/auth';
 import { getUserFromRequest } from '@/lib/api-auth';
 
-const paymentsFile = path.join(process.cwd(), 'payments.json');
+const paymentsFile = path.join(process.cwd(), 'billing-payments.json');
 const customerFile = path.join(process.cwd(), 'customer-data.json');
 
 async function getPayments() {
@@ -67,6 +67,9 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
+
+        // Debug logging
+        await fs.writeFile(path.join(process.cwd(), 'debug_payment.log'), JSON.stringify(body, null, 2));
 
         // Basic validation
         if (!body.username || !body.amount) {
@@ -139,5 +142,36 @@ export async function POST(request) {
     } catch (error) {
         console.error('Payment Error:', error);
         return NextResponse.json({ error: 'Failed to record payment' }, { status: 500 });
+    }
+}
+
+export async function DELETE(request) {
+    try {
+        const body = await request.json();
+        const { ids } = body;
+
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            return NextResponse.json({ error: 'IDs array is required' }, { status: 400 });
+        }
+
+        let payments = await getPayments();
+        const initialLength = payments.length;
+
+        // Filter out payments with matching IDs
+        payments = payments.filter(p => !ids.includes(p.id));
+
+        if (payments.length === initialLength) {
+            return NextResponse.json({ message: 'No payments found to delete' }, { status: 404 });
+        }
+
+        await fs.writeFile(paymentsFile, JSON.stringify(payments, null, 2));
+
+        return NextResponse.json({
+            success: true,
+            message: `Successfully deleted ${initialLength - payments.length} payments`
+        });
+    } catch (error) {
+        console.error('Delete Error:', error);
+        return NextResponse.json({ error: 'Failed to delete payments' }, { status: 500 });
     }
 }

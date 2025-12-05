@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { DollarSign, CreditCard, Calendar, Plus, Search, FileText, Settings, Printer, ArrowUpDown, UserX, MessageCircle } from 'lucide-react';
+import { DollarSign, CreditCard, Calendar, Plus, Search, FileText, Settings, Printer, ArrowUpDown, UserX, MessageCircle, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
@@ -13,6 +13,7 @@ export default function BillingPage() {
     const [showModal, setShowModal] = useState(false);
     const [showInvoiceModal, setShowInvoiceModal] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState(null);
+    const [selectedPayments, setSelectedPayments] = useState(new Set()); // For bulk actions
     const [users, setUsers] = useState([]); // For user selection (PPPoE Users)
     const [systemUsers, setSystemUsers] = useState([]); // For resolving Agent/Technician names
     const [profiles, setProfiles] = useState([]); // For price lookup
@@ -39,6 +40,10 @@ export default function BillingPage() {
         notes: '',
         status: 'completed'
     });
+    const [baseAmount, setBaseAmount] = useState(0);
+    const [isNextMonthIncluded, setIsNextMonthIncluded] = useState(false);
+
+
 
     useEffect(() => {
         fetchData();
@@ -171,21 +176,80 @@ export default function BillingPage() {
         }
     };
 
+    const [lastRecordedPayment, setLastRecordedPayment] = useState(null); // For success modal state
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        alert('DEBUG: Tombol Save ditekan. Mengirim data...'); // Debug alert
         try {
+            console.log('Sending payment data:', formData);
             const res = await fetch('/api/billing/payments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
+            const data = await res.json();
             if (res.ok) {
-                setShowModal(false);
+                // Don't close modal, show success state
+                setLastRecordedPayment(data.payment);
                 setFormData({ username: '', amount: '', method: 'cash', notes: '', status: 'completed' });
+                setBaseAmount(0);
+                setIsNextMonthIncluded(false);
                 fetchData();
+            } else {
+                alert('Failed to record payment: ' + (data.error || 'Unknown error'));
             }
         } catch (error) {
             console.error('Failed to record payment', error);
+            alert('Error recording payment: ' + error.message);
+        }
+    };
+
+    const handleSelectAll = (e) => {
+        if (e.target.checked) {
+            const allIds = new Set(getSortedPayments().map(p => p.id));
+            setSelectedPayments(allIds);
+        } else {
+            setSelectedPayments(new Set());
+        }
+    };
+
+    const handleSelectPayment = (id) => {
+        const newSelected = new Set(selectedPayments);
+        if (newSelected.has(id)) {
+            newSelected.delete(id);
+        } else {
+            newSelected.add(id);
+        }
+        setSelectedPayments(newSelected);
+    };
+
+    const handleDeleteSelected = async () => {
+        if (selectedPayments.size === 0) return;
+        if (!confirm(`Are you sure you want to delete ${selectedPayments.size} selected invoices?`)) return;
+
+        setLoading(true);
+        try {
+            const res = await fetch('/api/billing/payments', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: Array.from(selectedPayments) })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                alert(data.message);
+                setSelectedPayments(new Set());
+                fetchData();
+            } else {
+                const data = await res.json();
+                alert('Failed to delete: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error deleting payments:', error);
+            alert('Error deleting payments');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -207,10 +271,17 @@ export default function BillingPage() {
 
     const getAvailableMonths = () => {
         const months = new Set();
+
+        // Always include current month
+        const now = new Date();
+        months.add(`${now.getFullYear()}-${now.getMonth()}`);
+
+        // Add all months from payments
         payments.forEach(p => {
             const date = new Date(p.date);
             months.add(`${date.getFullYear()}-${date.getMonth()}`);
         });
+
         return Array.from(months).sort().reverse().map(m => {
             const [year, month] = m.split('-');
             return { year: parseInt(year), month: parseInt(month) };
@@ -386,6 +457,15 @@ export default function BillingPage() {
                                 >
                                     <FileText size={20} /> Generate Invoices
                                 </button>
+                                {selectedPayments.size > 0 && (
+                                    <button
+                                        onClick={handleDeleteSelected}
+                                        className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors shadow-sm"
+                                    >
+                                        <Trash2 size={20} />
+                                        Delete Selected ({selectedPayments.size})
+                                    </button>
+                                )}
                                 <button
                                     onClick={handleAutoDrop}
                                     className="bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-700 transition-colors shadow-sm"
@@ -627,6 +707,14 @@ export default function BillingPage() {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
+                                    <th className="px-6 py-3 text-left">
+                                        <input
+                                            type="checkbox"
+                                            onChange={handleSelectAll}
+                                            checked={getSortedPayments().length > 0 && selectedPayments.size === getSortedPayments().length}
+                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                    </th>
                                     <th
                                         onClick={() => sortData('date')}
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
@@ -671,12 +759,20 @@ export default function BillingPage() {
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {loading ? (
-                                    <tr><td colSpan="6" className="px-6 py-4 text-center text-gray-500">Loading...</td></tr>
+                                    <tr><td colSpan="9" className="px-6 py-4 text-center text-gray-500">Loading...</td></tr>
                                 ) : getSortedPayments().length === 0 ? (
-                                    <tr><td colSpan="6" className="px-6 py-4 text-center text-gray-500">No payments found</td></tr>
+                                    <tr><td colSpan="9" className="px-6 py-4 text-center text-gray-500">No payments found</td></tr>
                                 ) : (
                                     getSortedPayments().map((payment) => (
                                         <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedPayments.has(payment.id)}
+                                                    onChange={() => handleSelectPayment(payment.id)}
+                                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                />
+                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {formatDate(payment.date)}
                                             </td>
@@ -695,9 +791,10 @@ export default function BillingPage() {
                                                 {payment.method}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${payment.status === 'completed'
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-yellow-100 text-yellow-800'
+                                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${payment.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                                    payment.status === 'postponed' ? 'bg-orange-100 text-orange-800' :
+                                                        payment.status === 'merged' ? 'bg-gray-100 text-gray-500' :
+                                                            'bg-yellow-100 text-yellow-800'
                                                     }`}>
                                                     {payment.status}
                                                 </span>
@@ -712,6 +809,7 @@ export default function BillingPage() {
                                                 <button
                                                     onClick={async () => {
                                                         setSelectedInvoice(payment);
+
                                                         await fetchCustomerDetails(payment.username);
                                                         // Small delay to ensure state is updated
                                                         setTimeout(() => setShowInvoiceModal(true), 100);
@@ -748,87 +846,189 @@ export default function BillingPage() {
                             animate={{ opacity: 1, scale: 1 }}
                             className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"
                         >
-                            <h2 className="text-xl font-bold mb-4 text-gray-800">Record Payment</h2>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">User</label>
-                                    <select
-                                        required
-                                        value={formData.username}
-                                        onChange={(e) => {
-                                            const selectedUser = users.find(u => u.name === e.target.value);
-                                            let amount = formData.amount;
+                            <h2 className="text-xl font-bold mb-4 text-gray-800">
+                                {lastRecordedPayment ? 'Payment Recorded!' : 'Record Payment'}
+                            </h2>
 
-                                            if (selectedUser && selectedUser.profile) {
-                                                const userProfile = profiles.find(p => p.name === selectedUser.profile);
-                                                if (userProfile && userProfile.price) {
-                                                    amount = userProfile.price;
+                            {lastRecordedPayment ? (
+                                <div className="space-y-6 text-center py-4">
+                                    <div className="flex justify-center">
+                                        <div className="bg-green-100 p-4 rounded-full">
+                                            <DollarSign size={48} className="text-green-600" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p className="text-lg font-semibold text-gray-800">Pembayaran Berhasil Disimpan</p>
+                                        <p className="text-gray-500 mt-1">
+                                            {formatCurrency(lastRecordedPayment.amount)} - {lastRecordedPayment.username}
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-col gap-3">
+                                        <button
+                                            onClick={() => handleSendWhatsApp(lastRecordedPayment)}
+                                            className="w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center gap-2 font-medium transition-colors"
+                                        >
+                                            <MessageCircle size={20} /> Kirim WhatsApp
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setLastRecordedPayment(null);
+                                                setShowModal(false);
+                                            }}
+                                            className="w-full px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+                                        >
+                                            Tutup
+                                        </button>
+                                        <button
+                                            onClick={() => setLastRecordedPayment(null)}
+                                            className="w-full px-4 py-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                        >
+                                            Input Pembayaran Lain
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleSubmit} className="space-y-4">
+                                    {users.length === 0 && (
+                                        <div className="bg-yellow-50 text-yellow-800 p-3 rounded-lg text-sm mb-4">
+                                            Warning: No users found. Please check Mikrotik connection or add users first.
+                                        </div>
+                                    )}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">User</label>
+                                        <select
+                                            value={formData.username}
+                                            onChange={(e) => {
+                                                const selectedUser = users.find(u => u.name === e.target.value);
+                                                let amount = formData.amount;
+
+                                                if (selectedUser && selectedUser.profile) {
+                                                    const userProfile = profiles.find(p => p.name === selectedUser.profile);
+                                                    // Parse price from comment (format: "price:150000")
+                                                    if (userProfile && userProfile.comment && userProfile.comment.includes('price:')) {
+                                                        const match = userProfile.comment.match(/price:(\d+)/);
+                                                        if (match) {
+                                                            amount = match[1];
+                                                        }
+                                                    } else if (userProfile && userProfile.price) {
+                                                        // Fallback to direct price property if it exists
+                                                        amount = userProfile.price;
+                                                    }
                                                 }
-                                            }
 
-                                            setFormData({
-                                                ...formData,
-                                                username: e.target.value,
-                                                amount: amount
-                                            });
-                                        }}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                                    >
-                                        <option value="">Select User</option>
-                                        {users.map(user => (
-                                            <option key={user['.id']} value={user.name}>{user.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Amount (IDR)</label>
-                                    <input
-                                        type="number"
-                                        required
-                                        value={formData.amount}
-                                        onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                                        placeholder="150000"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Method</label>
-                                    <select
-                                        value={formData.method}
-                                        onChange={(e) => setFormData({ ...formData, method: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                                    >
-                                        <option value="cash">Cash</option>
-                                        <option value="transfer">Transfer</option>
-                                        <option value="qris">QRIS</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                                    <textarea
-                                        value={formData.notes}
-                                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                                        rows="3"
-                                        placeholder="Optional notes..."
-                                    />
-                                </div>
-                                <div className="flex justify-end gap-3 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowModal(false)}
-                                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                                    >
-                                        Save Payment
-                                    </button>
-                                </div>
-                            </form>
+                                                setBaseAmount(amount);
+                                                setIsNextMonthIncluded(false);
+                                                setFormData({
+                                                    ...formData,
+                                                    username: e.target.value,
+                                                    amount: amount,
+                                                    notes: ''
+                                                });
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                        >
+                                            <option value="">Select User</option>
+                                            {users.map(user => (
+                                                <option key={user['.id']} value={user.name}>{user.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Advance Payment Checkbox */}
+                                    {formData.username && baseAmount > 0 && (
+                                        <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isNextMonthIncluded}
+                                                    onChange={(e) => {
+                                                        const checked = e.target.checked;
+                                                        setIsNextMonthIncluded(checked);
+
+                                                        const currentMonth = new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                                                        const nextMonthDate = new Date();
+                                                        nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
+                                                        const nextMonth = nextMonthDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+
+                                                        if (checked) {
+                                                            setFormData(prev => ({
+                                                                ...prev,
+                                                                amount: baseAmount * 2,
+                                                                notes: `Pembayaran ${currentMonth} & ${nextMonth}`
+                                                            }));
+                                                        } else {
+                                                            setFormData(prev => ({
+                                                                ...prev,
+                                                                amount: baseAmount,
+                                                                notes: ''
+                                                            }));
+                                                        }
+                                                    }}
+                                                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                                />
+                                                <span className="text-sm font-medium text-blue-800">Bayar Bulan Depan Juga (+{formatCurrency(baseAmount)})</span>
+                                            </label>
+                                            {isNextMonthIncluded && (
+                                                <p className="text-xs text-blue-600 mt-1 ml-6">
+                                                    Total menjadi {formatCurrency(baseAmount * 2)}. Invoice akan mencakup tagihan bulan ini dan bulan depan.
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount (IDR)</label>
+                                        <input
+                                            type="number"
+                                            value={formData.amount}
+                                            onChange={(e) => {
+                                                setFormData({ ...formData, amount: e.target.value });
+                                                // If user manually changes amount, we might want to uncheck the box or handle it differently
+                                                // For now, let's just let them edit it
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                            placeholder="150000"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Method</label>
+                                        <select
+                                            value={formData.method}
+                                            onChange={(e) => setFormData({ ...formData, method: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                        >
+                                            <option value="cash">Cash</option>
+                                            <option value="transfer">Transfer</option>
+                                            <option value="qris">QRIS</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                        <textarea
+                                            value={formData.notes}
+                                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                            rows="3"
+                                            placeholder="Optional notes..."
+                                        />
+                                    </div>
+                                    <div className="flex justify-end gap-3 pt-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowModal(false)}
+                                            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                        >
+                                            Save Payment
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
                         </motion.div>
                     </div>
                 )
@@ -957,11 +1157,15 @@ export default function BillingPage() {
                                         <p className="text-sm font-medium text-gray-500 mb-1">Tanggal:</p>
                                         <p className="text-gray-900">{formatDate(selectedInvoice.date)}</p>
                                         <p className="text-sm font-medium text-gray-500 mt-2 mb-1">Status:</p>
-                                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${selectedInvoice.status === 'completed'
-                                            ? 'bg-green-100 text-green-800 print:bg-transparent print:text-black print:border print:border-black'
-                                            : 'bg-red-100 text-red-800 print:bg-transparent print:text-black print:border print:border-black'
+                                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${selectedInvoice.status === 'completed' ? 'bg-green-100 text-green-800 print:bg-transparent print:text-black print:border print:border-black' :
+                                            selectedInvoice.status === 'postponed' ? 'bg-orange-100 text-orange-800 print:bg-transparent print:text-black print:border print:border-black' :
+                                                selectedInvoice.status === 'merged' ? 'bg-gray-100 text-gray-500 print:bg-transparent print:text-black print:border print:border-black' :
+                                                    'bg-red-100 text-red-800 print:bg-transparent print:text-black print:border print:border-black'
                                             }`}>
-                                            {selectedInvoice.status === 'completed' ? 'LUNAS' : 'BELUM BAYAR'}
+                                            {selectedInvoice.status === 'completed' ? 'LUNAS' :
+                                                selectedInvoice.status === 'postponed' ? 'DITUNDA' :
+                                                    selectedInvoice.status === 'merged' ? 'DIGABUNG' :
+                                                        'BELUM BAYAR'}
                                         </span>
                                     </div>
                                 </div>
@@ -990,11 +1194,13 @@ export default function BillingPage() {
                                 )}
                             </div>
 
+
+
                             {/* Actions */}
                             <div className="flex justify-end gap-3 print:hidden p-6 pt-0">
                                 <button
                                     onClick={() => setShowInvoiceModal(false)}
-                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
                                 >
                                     Tutup
                                 </button>
@@ -1005,28 +1211,64 @@ export default function BillingPage() {
                                     <Printer size={18} /> Cetak Tagihan
                                 </button>
                                 {selectedInvoice.status !== 'completed' && (
-                                    <button
-                                        onClick={async () => {
-                                            if (!confirm('Tandai tagihan ini sebagai lunas?')) return;
-                                            try {
-                                                const res = await fetch(`/api/billing/payments/${selectedInvoice.id}`, {
-                                                    method: 'PUT',
-                                                    headers: { 'Content-Type': 'application/json' },
-                                                    body: JSON.stringify({ status: 'completed' }),
-                                                });
-                                                if (res.ok) {
-                                                    alert('Pembayaran berhasil dicatat');
-                                                    setShowInvoiceModal(false);
-                                                    fetchData();
+                                    <>
+                                        <button
+                                            onClick={async () => {
+                                                if (!confirm('Tandai tagihan ini sebagai lunas?')) return;
+                                                try {
+                                                    const res = await fetch(`/api/billing/payments/${selectedInvoice.id}`, {
+                                                        method: 'PUT',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({
+                                                            status: 'completed',
+                                                            amount: selectedInvoice.amount,
+                                                            notes: selectedInvoice.notes
+                                                        }),
+                                                    });
+                                                    const data = await res.json();
+                                                    if (res.ok) {
+                                                        alert('Pembayaran berhasil dicatat');
+                                                        setShowInvoiceModal(false);
+                                                        fetchData();
+                                                    } else {
+                                                        alert('Gagal update pembayaran: ' + (data.error || 'Unknown error'));
+                                                    }
+                                                } catch (error) {
+                                                    console.error('Failed to update payment', error);
+                                                    alert('Error: ' + error.message);
                                                 }
-                                            } catch (error) {
-                                                console.error('Failed to update payment', error);
-                                            }
-                                        }}
-                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-                                    >
-                                        <DollarSign size={18} /> Bayar Sekarang
-                                    </button>
+                                            }}
+                                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                                        >
+                                            <DollarSign size={18} /> Bayar Sekarang
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                if (!confirm('Tunda tagihan ini ke bulan depan?')) return;
+                                                try {
+                                                    const res = await fetch(`/api/billing/payments/${selectedInvoice.id}`, {
+                                                        method: 'PUT',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ status: 'postponed' }),
+                                                    });
+                                                    const data = await res.json();
+                                                    if (res.ok) {
+                                                        alert('Tagihan berhasil ditunda');
+                                                        setShowInvoiceModal(false);
+                                                        fetchData();
+                                                    } else {
+                                                        alert('Gagal menunda tagihan: ' + (data.error || 'Unknown error'));
+                                                    }
+                                                } catch (error) {
+                                                    console.error('Failed to postpone payment', error);
+                                                    alert('Error: ' + error.message);
+                                                }
+                                            }}
+                                            className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-2"
+                                        >
+                                            <Calendar size={18} /> Tunda Bayar
+                                        </button>
+                                    </>
                                 )}
                                 {selectedInvoice.status === 'completed' && (
                                     <button
@@ -1038,7 +1280,7 @@ export default function BillingPage() {
                                 )}
                             </div>
                         </motion.div>
-                    </div>
+                    </div >
                 )
             }
         </div >

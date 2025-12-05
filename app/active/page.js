@@ -191,6 +191,14 @@ export default function ActiveConnectionsPage() {
                                         Caller ID <ArrowUpDown size={14} />
                                     </div>
                                 </th>
+                                <th
+                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                    onClick={() => sortData('tx-byte')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Data Usage <ArrowUpDown size={14} />
+                                    </div>
+                                </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Actions
                                 </th>
@@ -199,7 +207,7 @@ export default function ActiveConnectionsPage() {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {connections.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                                    <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
                                         No active connections
                                     </td>
                                 </tr>
@@ -217,6 +225,12 @@ export default function ActiveConnectionsPage() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-gray-500">
                                             {conn['caller-id'] || '-'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-sm">
+                                            <div className="flex flex-col">
+                                                <span className="text-green-600">↓ {formatBytes(conn['tx-byte'])}</span>
+                                                <span className="text-blue-600">↑ {formatBytes(conn['rx-byte'])}</span>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-gray-500">
                                             {conn.address && (
