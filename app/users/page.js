@@ -257,9 +257,9 @@ export default function UsersPage() {
                     aVal = (a.profile || '').toLowerCase();
                     bVal = (b.profile || '').toLowerCase();
                     break;
-                case 'service':
-                    aVal = (a.service || '').toLowerCase();
-                    bVal = (b.service || '').toLowerCase();
+                case 'partner':
+                    aVal = getPartnerName(a.name).toLowerCase();
+                    bVal = getPartnerName(b.name).toLowerCase();
                     break;
                 case 'usage':
                     // Sort by total usage (rx + tx)
@@ -509,6 +509,26 @@ export default function UsersPage() {
         return customersData[username]?.name || username;
     };
 
+    const getPartnerName = (username) => {
+        const customer = customersData[username];
+        if (!customer) return '-';
+
+        const agentId = customer.agentId;
+        const technicianId = customer.technicianId;
+        const parts = [];
+
+        if (agentId) {
+            const agent = systemUsers.find(u => u.id === agentId);
+            if (agent) parts.push(`Agent: ${agent.fullName || agent.username}`);
+        }
+        if (technicianId) {
+            const tech = systemUsers.find(u => u.id === technicianId);
+            if (tech) parts.push(`Tech: ${tech.fullName || tech.username}`);
+        }
+
+        return parts.length > 0 ? parts.join(', ') : '-';
+    };
+
     const handleGenerateMissingNumbers = async () => {
         if (!confirm('This will generate customer numbers for all users who don\'t have one. Continue?')) return;
 
@@ -725,11 +745,11 @@ export default function UsersPage() {
                                     </div>
                                 </th>
                                 <th
-                                    onClick={() => sortData('service')}
+                                    onClick={() => sortData('partner')}
                                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                                 >
                                     <div className="flex items-center gap-1">
-                                        Service
+                                        Partner
                                         <ArrowUpDown size={14} />
                                     </div>
                                 </th>
@@ -781,7 +801,9 @@ export default function UsersPage() {
                                             {user.profile || '-'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {user.service || '-'}
+                                            <div className="flex flex-col text-xs">
+                                                {getPartnerName(user.name)}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <div className="flex flex-col text-xs">

@@ -102,24 +102,18 @@ export default function Sidebar() {
                     {/* Logo Section */}
                     <div className="mb-8 mt-2 lg:text-left text-center w-full lg:w-auto">
                         {appSettings.logoUrl ? (
-                            <>
-                                {/* Logo - shown on both mobile and desktop */}
-                                <img
-                                    src={appSettings.logoUrl}
-                                    alt="Logo"
-                                    className="h-16 lg:h-12 object-contain lg:mx-0 mx-auto"
-                                    onError={(e) => {
-                                        e.target.style.display = 'none';
-                                        e.target.nextElementSibling.style.display = 'block';
-                                    }}
-                                />
-                                {/* App Name - hidden on mobile when logo exists, shown on desktop */}
-                                <h2 className="hidden lg:block text-2xl font-bold text-blue-600 dark:text-white mt-2">
-                                    {appSettings.appName}
-                                </h2>
-                            </>
+                            /* Logo exists - only show logo, hide app name on desktop */
+                            <img
+                                src={appSettings.logoUrl}
+                                alt="Logo"
+                                className="h-16 lg:h-12 object-contain lg:mx-0 mx-auto"
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextElementSibling.style.display = 'block';
+                                }}
+                            />
                         ) : (
-                            /* No logo - show app name on both */
+                            /* No logo - show app name */
                             <h2 className="text-2xl font-bold text-blue-600 dark:text-white">
                                 {appSettings.appName}
                             </h2>
