@@ -1,99 +1,179 @@
-# Deployment Guide - PPPoE Billing Management System
+# MikroTik Billing Management System
 
-This guide explains how to deploy the PPPoE Billing Management application on Ubuntu/Debian Server.
+A comprehensive PPPoE billing and user management system for MikroTik routers.
 
-## System Requirements
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Node](https://img.shields.io/badge/node-20.x-green.svg)
+![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)
 
-- **OS**: Ubuntu 20.04+ / Debian 11+
-- **Node.js**: 20.x or higher
-- **RAM**: Minimum 1GB
-- **Storage**: Minimum 10GB
-- **Network**: Access to MikroTik Router via API
+## ✨ Features
 
-## Quick Installation (Ubuntu/Debian)
+- ✅ Dashboard with real-time stats
+- ✅ PPPoE User Management
+- ✅ Billing & Invoice System
+- ✅ Customer Data Management
+- ✅ Multi-Router Support
+- ✅ Temperature & CPU Monitoring (3-day graphs)
+- ✅ Traffic Monitoring (7-day graphs)
+- ✅ Auto-Drop Unpaid Users
+- ✅ Automatic Backups
+- ✅ Dark Mode Support
+- ✅ Mobile Responsive
 
-### 1. Update System
+## 📋 System Requirements
+
+| Requirement | Minimum |
+|-------------|---------|
+| OS | Ubuntu 20.04+ / Debian 11+ |
+| Node.js | 20.x or higher |
+| RAM | 1GB |
+| Storage | 10GB |
+| Network | Access to MikroTik Router via API |
+
+---
+
+## 🚀 Installation
+
+### Quick Install (One Command)
+
 ```bash
+curl -fsSL https://raw.githubusercontent.com/nurwendi/mikrotikbilling/main/scripts/install.sh | bash
+```
+
+### Manual Installation
+
+#### Step 1: Update System
+```bash
+# If logged in as root (no sudo needed)
+apt update && apt upgrade -y
+apt install -y curl git
+
+# If logged in as regular user
 sudo apt update && sudo apt upgrade -y
+sudo apt install -y curl git
 ```
 
-### 2. Install Node.js 20.x
+#### Step 2: Install Node.js 20.x
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
-node -v  # Verify installation
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt-get install -y nodejs
+node -v  # Verify: should show v20.x
 ```
 
-### 3. Install PM2 (Process Manager)
+#### Step 3: Install PM2 (Process Manager)
 ```bash
-sudo npm install -g pm2
+npm install -g pm2
 ```
 
-### 4. Install Git
-```bash
-sudo apt install -y git
-```
-
-### 5. Clone Repository
+#### Step 4: Clone Repository
 ```bash
 cd /opt
-sudo git clone https://github.com/nurwendi/mikrotikbilling.git billing
-sudo chown -R $USER:$USER /opt/billing
+git clone https://github.com/nurwendi/mikrotikbilling.git billing
 cd /opt/billing
 ```
 
-### 6. Install Dependencies
+#### Step 5: Install Dependencies & Build
 ```bash
 npm install
-```
-
-### 7. Build Application
-```bash
 npm run build
 ```
 
-### 8. Start Application with PM2
+#### Step 6: Start Application
 ```bash
 pm2 start npm --name "billing" -- start
 pm2 save
-pm2 startup  # Follow the instructions to enable auto-start
+pm2 startup  # Follow the printed command to enable auto-start
 ```
 
-### 9. Set Timezone
+#### Step 7: Set Timezone (Optional)
 ```bash
-sudo timedatectl set-timezone Asia/Jakarta
+timedatectl set-timezone Asia/Jakarta
 ```
 
-## Configuration
+#### Step 8: Access Application
+Open browser: `http://YOUR_SERVER_IP:3000`
 
-### Default Login
-- **Username**: `admin`
-- **Password**: `admin123`
+**Default Login:**
+- Username: `admin`
+- Password: `admin`
 
 > ⚠️ **Important**: Change the default password after first login!
 
-### Port Configuration
-The app runs on port **3000** by default. To run on port 80:
+---
 
-**Option A: Use authbind (Recommended)**
+## 🗑️ Uninstallation
+
+### Complete Removal
+
 ```bash
-sudo apt install authbind
-sudo touch /etc/authbind/byport/80
-sudo chmod 500 /etc/authbind/byport/80
-sudo chown $USER /etc/authbind/byport/80
+# Stop and remove from PM2
+pm2 stop billing
+pm2 delete billing
+pm2 save
+
+# Remove application files
+rm -rf /opt/billing
+
+# Remove PM2 startup script (optional)
+pm2 unstartup
 ```
 
-**Option B: Use Nginx as Reverse Proxy**
+### Remove with Data Backup
+
 ```bash
-sudo apt install nginx
+# Backup data first
+mkdir -p ~/billing-backup
+cp /opt/billing/config.json ~/billing-backup/
+cp /opt/billing/customer-data.json ~/billing-backup/
+cp -r /opt/billing/data ~/billing-backup/
+cp -r /opt/billing/backups ~/billing-backup/
+
+# Then uninstall
+pm2 stop billing
+pm2 delete billing
+pm2 save
+rm -rf /opt/billing
+
+echo "Backup saved to ~/billing-backup"
 ```
 
-Create config file:
+### Remove Everything (including Node.js & PM2)
+
 ```bash
-sudo nano /etc/nginx/sites-available/billing
+# Remove application
+pm2 stop billing
+pm2 delete billing
+rm -rf /opt/billing
+
+# Remove PM2
+npm uninstall -g pm2
+rm -rf ~/.pm2
+
+# Remove Node.js (optional)
+apt remove -y nodejs
+rm -rf /etc/apt/sources.list.d/nodesource.list
 ```
 
-Add this configuration:
+---
+
+## ⚙️ Configuration
+
+### MikroTik Router Setup
+
+Enable API access on your MikroTik router:
+```
+/ip service set api address=YOUR_SERVER_IP enabled=yes port=8728
+/user add name=billing password=YOUR_PASSWORD group=full
+```
+
+### Nginx Reverse Proxy (Optional - for port 80)
+
+```bash
+apt install nginx -y
+nano /etc/nginx/sites-available/billing
+```
+
+Add configuration:
 ```nginx
 server {
     listen 80;
@@ -113,25 +193,14 @@ server {
 
 Enable the site:
 ```bash
-sudo ln -s /etc/nginx/sites-available/billing /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl restart nginx
+ln -s /etc/nginx/sites-available/billing /etc/nginx/sites-enabled/
+nginx -t
+systemctl restart nginx
 ```
 
-## MikroTik Router Setup
+---
 
-### Enable API Access
-On MikroTik RouterOS:
-```
-/ip service set api address=YOUR_SERVER_IP enabled=yes port=8728
-```
-
-### Create API User
-```
-/user add name=billing password=YOUR_PASSWORD group=full
-```
-
-## Data Files Location
+## 📁 Data Files
 
 | File | Description |
 |------|-------------|
@@ -145,9 +214,9 @@ On MikroTik RouterOS:
 | `data/cpu-history.json` | CPU usage history (3 days) |
 | `backups/` | Automatic backups |
 
-## Scheduled Tasks
+---
 
-The application runs automatic tasks:
+## ⏰ Scheduled Tasks
 
 | Task | Schedule | Description |
 |------|----------|-------------|
@@ -156,7 +225,9 @@ The application runs automatic tasks:
 | Traffic Collection | Every minute | Collects bandwidth data |
 | Usage Sync | Every 5 minutes | Syncs user data usage |
 
-## PM2 Commands
+---
+
+## 🔧 PM2 Commands
 
 ```bash
 pm2 list              # Show all processes
@@ -166,7 +237,9 @@ pm2 stop billing      # Stop application
 pm2 delete billing    # Remove from PM2
 ```
 
-## Update Application
+---
+
+## 🔄 Update Application
 
 ```bash
 cd /opt/billing
@@ -176,25 +249,30 @@ npm run build
 pm2 restart billing
 ```
 
-## Resetting Data
+---
+
+## 🔁 Reset Data
 
 To reset all data to fresh state:
 ```bash
+cd /opt/billing
 node scripts/reset-data.js
 ```
 
 This will:
 - Clear all customer data
-- Reset to default admin user
+- Reset to default admin user (admin/admin)
 - Clear all history data
 - Keep configuration files
 
-## Troubleshooting
+---
+
+## 🐛 Troubleshooting
 
 ### Port 3000 Already in Use
 ```bash
-sudo lsof -i :3000
-sudo kill -9 <PID>
+lsof -i :3000
+kill -9 <PID>
 ```
 
 ### PM2 Not Starting on Boot
@@ -209,26 +287,23 @@ pm2 save
 pm2 logs billing --lines 100
 ```
 
-### Verify Node.js Version
-```bash
-node -v  # Should be 20.x or higher
-```
+### Login Not Working
+Make sure you're using HTTP (not HTTPS) or the cookie won't be saved.
 
-## Features
+### Cannot Connect to MikroTik
+1. Verify API is enabled: `/ip service print`
+2. Check firewall rules on MikroTik
+3. Verify credentials in Connection settings
 
-- ✅ Dashboard with real-time stats
-- ✅ PPPoE User Management
-- ✅ Billing & Invoice System
-- ✅ Customer Data Management
-- ✅ Multi-Router Support
-- ✅ Temperature & CPU Monitoring (3-day graphs)
-- ✅ Traffic Monitoring (7-day graphs)
-- ✅ Auto-Drop Unpaid Users
-- ✅ Automatic Backups
-- ✅ Dark Mode Support
-- ✅ Mobile Responsive
+---
 
-## Support
+## 📞 Support
 
 For issues and feature requests, please open an issue on GitHub:
-https://github.com/nurwendi/pppoemanagement/issues
+https://github.com/nurwendi/mikrotikbilling/issues
+
+---
+
+## 📄 License
+
+MIT License - feel free to use and modify for your needs.
