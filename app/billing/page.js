@@ -268,6 +268,12 @@ export default function BillingPage() {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
     };
 
+    const getMonthName = (monthIndex) => {
+        const months = ['January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'];
+        return months[monthIndex];
+    };
+
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('id-ID', {
             year: 'numeric', month: 'short', day: 'numeric',
@@ -630,6 +636,81 @@ export default function BillingPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Partner Earnings Section */}
+                {agentStats && agentStats.role === 'admin' && agentStats.agents && agentStats.agents.length > 0 && (
+                    <div className="bg-white rounded-lg shadow-md glass-card overflow-hidden">
+                        <div className="p-6 border-b border-gray-200">
+                            <h2 className="text-lg font-semibold text-gray-800">Partner Earnings - {getMonthName(selectedMonth)} {selectedYear}</h2>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Partner</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unpaid</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Revenue</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Commission</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Net Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {agentStats.agents.map((agent) => (
+                                        <tr key={agent.id} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div>
+                                                        <div className="text-sm font-medium text-gray-900">{agent.name}</div>
+                                                        <div className="text-xs text-gray-500">{agent.role}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {agent.rate}%
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                                    {agent.paidCount}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                                    {agent.unpaidCount}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {formatCurrency(agent.totalRevenue)}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                                                {formatCurrency(agent.commission)}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
+                                                {formatCurrency(agent.totalRevenue - agent.commission)}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {/* Total Row */}
+                                    <tr className="bg-gray-100 font-semibold">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" colSpan="4">
+                                            Total
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {formatCurrency(agentStats.grandTotal?.revenue || 0)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                                            {formatCurrency(agentStats.grandTotal?.commission || 0)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
+                                            {formatCurrency(agentStats.grandTotal?.netRevenue || 0)}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
 
                 {/* Payment List */}
                 <div className="bg-white rounded-lg shadow-md glass-card overflow-hidden">
