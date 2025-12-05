@@ -29,7 +29,8 @@ export async function PUT(request, { params }) {
         if (name) updateParams.push(`=name=${name}`);
         if (password) updateParams.push(`=password=${password}`);
         if (profile) updateParams.push(`=profile=${profile}`);
-        if (service) updateParams.push(`=service=${service}`);
+        // Only add service if it's a specific value (not empty or 'any')
+        if (service && service !== 'any') updateParams.push(`=service=${service}`);
         if (comment !== undefined) updateParams.push(`=comment=${comment || ''}`);
 
         console.log('Update params:', updateParams);
