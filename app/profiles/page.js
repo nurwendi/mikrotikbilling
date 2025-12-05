@@ -163,11 +163,11 @@ export default function ProfilesPage() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-800">PPPoE Profiles</h1>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-700"
+                    className="w-full md:w-auto bg-blue-600 text-white px-4 py-2 rounded flex items-center justify-center gap-2 hover:bg-blue-700"
                 >
                     <Plus size={20} /> Add Profile
                 </button>

@@ -80,7 +80,7 @@ export default function Sidebar() {
             {!isOpen && (
                 <button
                     onClick={toggleSidebar}
-                    className="lg:hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 p-4 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 hover:scale-110"
+                    className="lg:hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 p-4 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 hover:scale-110 print:hidden"
                 >
                     <Menu size={28} />
                 </button>
@@ -95,6 +95,7 @@ export default function Sidebar() {
                 ${isOpen ? 'top-0' : 'top-full'}
                 lg:top-0 lg:translate-y-0
                 glass-mode:bg-white/80 glass-mode:dark:bg-gray-900/80 glass-mode:backdrop-blur-md glass-mode:border-r glass-mode:border-gray-200/50 glass-mode:dark:border-white/10
+                print:hidden
             `}
                 style={{ transition: 'top 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }}>
                 <div className="flex flex-col min-h-full lg:items-start items-center">

@@ -202,7 +202,7 @@ export default function AppSettingsPage() {
 
     return (
         <div className="w-full space-y-6">
-            <h1 className="text-3xl font-bold text-gray-800">Application Settings</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Application Settings</h1>
 
             {message.text && (
                 <div className={`p-4 rounded-lg ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'

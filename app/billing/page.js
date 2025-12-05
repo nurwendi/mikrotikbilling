@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { DollarSign, CreditCard, Calendar, Plus, Search, FileText, Settings, Printer, ArrowUpDown, UserX, MessageCircle, Trash2 } from 'lucide-react';
+import { DollarSign, CreditCard, Calendar, Plus, Search, FileText, Settings, Printer, ArrowUpDown, UserX, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
@@ -13,7 +13,7 @@ export default function BillingPage() {
     const [showModal, setShowModal] = useState(false);
     const [showInvoiceModal, setShowInvoiceModal] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState(null);
-    const [selectedPayments, setSelectedPayments] = useState(new Set()); // For bulk actions
+
     const [users, setUsers] = useState([]); // For user selection (PPPoE Users)
     const [systemUsers, setSystemUsers] = useState([]); // For resolving Agent/Technician names
     const [profiles, setProfiles] = useState([]); // For price lookup
@@ -205,53 +205,7 @@ export default function BillingPage() {
         }
     };
 
-    const handleSelectAll = (e) => {
-        if (e.target.checked) {
-            const allIds = new Set(getSortedPayments().map(p => p.id));
-            setSelectedPayments(allIds);
-        } else {
-            setSelectedPayments(new Set());
-        }
-    };
 
-    const handleSelectPayment = (id) => {
-        const newSelected = new Set(selectedPayments);
-        if (newSelected.has(id)) {
-            newSelected.delete(id);
-        } else {
-            newSelected.add(id);
-        }
-        setSelectedPayments(newSelected);
-    };
-
-    const handleDeleteSelected = async () => {
-        if (selectedPayments.size === 0) return;
-        if (!confirm(`Are you sure you want to delete ${selectedPayments.size} selected invoices?`)) return;
-
-        setLoading(true);
-        try {
-            const res = await fetch('/api/billing/payments', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ids: Array.from(selectedPayments) })
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                alert(data.message);
-                setSelectedPayments(new Set());
-                fetchData();
-            } else {
-                const data = await res.json();
-                alert('Failed to delete: ' + data.error);
-            }
-        } catch (error) {
-            console.error('Error deleting payments:', error);
-            alert('Error deleting payments');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const filteredPayments = payments.filter(p => {
         const customerName = customersData[p.username]?.name || '';
@@ -424,51 +378,41 @@ export default function BillingPage() {
     return (
         <div>
             <div className="space-y-6 print:hidden">
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-3xl font-bold text-gray-800">Billing & Payments</h1>
-                        <select
-                            value={`${selectedYear}-${selectedMonth}`}
-                            onChange={(e) => {
-                                const [year, month] = e.target.value.split('-');
-                                setSelectedYear(parseInt(year));
-                                setSelectedMonth(parseInt(month));
-                            }}
-                            className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500"
-                        >
-                            {getAvailableMonths().map(({ year, month }) => (
-                                <option key={`${year}-${month}`} value={`${year}-${month}`}>
-                                    {new Date(year, month, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="flex gap-2">
+                <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Billing & Payments</h1>
+                    <select
+                        value={`${selectedYear}-${selectedMonth}`}
+                        onChange={(e) => {
+                            const [year, month] = e.target.value.split('-');
+                            setSelectedYear(parseInt(year));
+                            setSelectedMonth(parseInt(month));
+                        }}
+                        className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500"
+                    >
+                        {getAvailableMonths().map(({ year, month }) => (
+                            <option key={`${year}-${month}`} value={`${year}-${month}`}>
+                                {new Date(year, month, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+                            </option>
+                        ))}
+                    </select>
+                    <div className="flex flex-col gap-2 md:flex-row md:gap-2">
                         {userRole === 'admin' && (
                             <>
                                 <Link href="/billing/settings">
-                                    <button className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-200 transition-colors shadow-sm">
+                                    <button className="w-full md:w-auto bg-gray-100 text-gray-700 px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors shadow-sm">
                                         <Settings size={20} /> Settings
                                     </button>
                                 </Link>
                                 <button
                                     onClick={handleGenerateInvoices}
-                                    className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-700 transition-colors shadow-sm"
+                                    className="w-full md:w-auto bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors shadow-sm"
                                 >
                                     <FileText size={20} /> Generate Invoices
                                 </button>
-                                {selectedPayments.size > 0 && (
-                                    <button
-                                        onClick={handleDeleteSelected}
-                                        className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors shadow-sm"
-                                    >
-                                        <Trash2 size={20} />
-                                        Delete Selected ({selectedPayments.size})
-                                    </button>
-                                )}
+
                                 <button
                                     onClick={handleAutoDrop}
-                                    className="bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-700 transition-colors shadow-sm"
+                                    className="w-full md:w-auto bg-red-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-red-700 transition-colors shadow-sm"
                                 >
                                     <UserX size={20} /> Auto-Drop Unpaid
                                 </button>
@@ -476,7 +420,7 @@ export default function BillingPage() {
                         )}
                         <button
                             onClick={() => setShowModal(true)}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-sm"
+                            className="w-full md:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-sm"
                         >
                             <Plus size={20} /> Record Payment
                         </button>
@@ -707,14 +651,7 @@ export default function BillingPage() {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left">
-                                        <input
-                                            type="checkbox"
-                                            onChange={handleSelectAll}
-                                            checked={getSortedPayments().length > 0 && selectedPayments.size === getSortedPayments().length}
-                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                        />
-                                    </th>
+
                                     <th
                                         onClick={() => sortData('date')}
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
@@ -759,20 +696,13 @@ export default function BillingPage() {
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {loading ? (
-                                    <tr><td colSpan="9" className="px-6 py-4 text-center text-gray-500">Loading...</td></tr>
+                                    <tr><td colSpan="8" className="px-6 py-4 text-center text-gray-500">Loading...</td></tr>
                                 ) : getSortedPayments().length === 0 ? (
-                                    <tr><td colSpan="9" className="px-6 py-4 text-center text-gray-500">No payments found</td></tr>
+                                    <tr><td colSpan="8" className="px-6 py-4 text-center text-gray-500">No payments found</td></tr>
                                 ) : (
                                     getSortedPayments().map((payment) => (
                                         <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedPayments.has(payment.id)}
-                                                    onChange={() => handleSelectPayment(payment.id)}
-                                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                                />
-                                            </td>
+
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {formatDate(payment.date)}
                                             </td>

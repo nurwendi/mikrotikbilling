@@ -160,7 +160,7 @@ export default function SystemUsersPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
                 <h1 className="text-2xl font-bold text-gray-800">System Users</h1>
                 <button
                     onClick={() => {
@@ -168,7 +168,7 @@ export default function SystemUsersPage() {
                         setFormData({ username: '', password: '', role: 'viewer', isAgent: false, isTechnician: false, agentRate: 0, technicianRate: 0, prefix: '' });
                         setShowModal(true);
                     }}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+                    className="w-full md:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
                 >
                     <Plus size={20} /> Add User
                 </button>

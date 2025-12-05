@@ -119,20 +119,20 @@ export default function BackupPage() {
 
     return (
         <div className="max-w-6xl space-y-6">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
                 <div className="flex items-center gap-4">
                     <Link href="/settings" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <ArrowLeft size={24} className="text-gray-600" />
                     </Link>
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-800">Backup & Restore</h1>
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Backup & Restore</h1>
                         <p className="text-sm text-gray-500 mt-1">Kelola backup data aplikasi Anda</p>
                     </div>
                 </div>
                 <button
                     onClick={handleCreateBackup}
                     disabled={loading}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+                    className="w-full md:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
                 >
                     <Database size={18} />
                     {loading ? 'Creating...' : 'Create Backup'}
