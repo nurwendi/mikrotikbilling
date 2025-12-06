@@ -8,7 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 export default function AppSettingsPage() {
     const { language, setLanguage, t } = useLanguage();
 
-    const { language, setLanguage, t } = useLanguage();
+
     const router = useRouter();
 
     const [settings, setSettings] = useState({
