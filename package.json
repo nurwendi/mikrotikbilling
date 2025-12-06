@@ -1,6 +1,6 @@
 {
-  "name": "user-management",
-  "version": "1.0.0",
+  "name": "mikrotik-billing-management",
+  "version": "1.1.0",
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
