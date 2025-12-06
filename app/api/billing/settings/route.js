@@ -2,6 +2,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { NextResponse } from 'next/server';
+import { getConfig, saveConfig } from '@/lib/config';
 
 const settingsFile = path.join(process.cwd(), 'billing-settings.json');
 
@@ -24,15 +25,47 @@ async function getSettings() {
 
 export async function GET() {
     const settings = await getSettings();
-    return NextResponse.json(settings);
+    const config = getConfig();
+
+    // Mask password
+    const emailConfig = config.email ? { ...config.email, password: config.email.password ? '******' : '' } : {};
+
+    return NextResponse.json({
+        ...settings,
+        email: emailConfig
+    });
 }
 
 export async function POST(request) {
     try {
-        const newSettings = await request.json();
-        await fs.writeFile(settingsFile, JSON.stringify(newSettings, null, 2));
+        const body = await request.json();
+
+        // Separate email config from billing settings
+        const { email, ...billingSettings } = body;
+
+        // 1. Save Billing Settings
+        await fs.writeFile(settingsFile, JSON.stringify(billingSettings, null, 2));
+
+        // 2. Save Email Settings if present
+        if (email) {
+            const oldConfig = getConfig();
+            let newEmailConfig = email;
+
+            // Handle Password Masking
+            if (newEmailConfig.password === '******') {
+                newEmailConfig.password = oldConfig.email?.password || '';
+            }
+
+            const newConfig = {
+                ...oldConfig,
+                email: newEmailConfig
+            };
+            saveConfig(newConfig);
+        }
+
         return NextResponse.json({ message: 'Settings saved successfully' });
     } catch (error) {
+        console.error('Save billing settings error:', error);
         return NextResponse.json({ error: 'Failed to save settings' }, { status: 500 });
     }
 }

@@ -1,20 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Server, Plus, Trash2, Edit2, CheckCircle, Power, X, Mail } from 'lucide-react';
+import { Server, Plus, Trash2, Edit2, CheckCircle, Power, X } from 'lucide-react';
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState({
         connections: [],
         activeConnectionId: null,
         wanInterface: '',
-        email: {
-            host: 'smtp.gmail.com',
-            port: '587',
-            user: '',
-            password: '',
-            secure: false
-        }
     });
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState(null);
@@ -253,73 +246,6 @@ export default function SettingsPage() {
                             </button>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            {/* Email Settings */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-6 border-b pb-4 flex items-center gap-2">
-                    <Mail size={20} /> Email Configuration (SMTP)
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Host</label>
-                        <input
-                            type="text"
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
-                            placeholder="smtp.gmail.com"
-                            value={settings.email?.host || ''}
-                            onChange={(e) => setSettings({ ...settings, email: { ...settings.email, host: e.target.value } })}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Port</label>
-                        <input
-                            type="number"
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
-                            placeholder="587"
-                            value={settings.email?.port || ''}
-                            onChange={(e) => setSettings({ ...settings, email: { ...settings.email, port: e.target.value } })}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Email/User</label>
-                        <input
-                            type="email"
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
-                            placeholder="your-email@gmail.com"
-                            value={settings.email?.user || ''}
-                            onChange={(e) => setSettings({ ...settings, email: { ...settings.email, user: e.target.value } })}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Password / App Password</label>
-                        <input
-                            type="password"
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
-                            placeholder={settings.email?.password ? "******" : "Enter App Password"}
-                            value={settings.email?.password || ''}
-                            onChange={(e) => setSettings({ ...settings, email: { ...settings.email, password: e.target.value } })}
-                        />
-                    </div>
-                </div>
-                <div className="mt-4 flex items-center gap-2">
-                    <input
-                        type="checkbox"
-                        id="secure"
-                        checked={settings.email?.secure || false}
-                        onChange={(e) => setSettings({ ...settings, email: { ...settings.email, secure: e.target.checked } })}
-                        className="rounded text-blue-600 focus:ring-blue-500"
-                    />
-                    <label htmlFor="secure" className="text-sm text-gray-700">Use Secure Connection (SSL/TLS - Usually for port 465)</label>
-                </div>
-                <div className="mt-6 flex justify-end">
-                    <button
-                        onClick={() => saveSettings({ email: settings.email })}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                        Save Email Settings
-                    </button>
                 </div>
             </div>
 
