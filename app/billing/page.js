@@ -459,42 +459,6 @@ export default function BillingPage() {
                                 <h3 className="text-lg md:text-2xl font-bold">{formatCurrency(agentStats.grandTotal.netRevenue)}</h3>
                             </div>
                         </div>
-
-                        {/* Partner Performance Table */}
-                        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                                <h3 className="font-bold text-gray-800">Performa Partner</h3>
-                            </div>
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Partner</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pelanggan Lunas</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Belum Bayar</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Pendapatan</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Komisi</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {agentStats.agents.map((partner) => (
-                                        <tr key={partner.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{partner.name}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-gray-500">{partner.rate}%</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-green-600 font-medium">{partner.paidCount}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-red-600 font-medium">{partner.unpaidCount}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-gray-900">{formatCurrency(partner.totalRevenue)}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap font-bold text-green-600">{formatCurrency(partner.commission)}</td>
-                                        </tr>
-                                    ))}
-                                    {agentStats.agents.length === 0 && (
-                                        <tr>
-                                            <td colSpan="6" className="px-6 py-4 text-center text-gray-500">Tidak ada partner</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
                     </div>
                 )}
 
