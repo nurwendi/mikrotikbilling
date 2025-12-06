@@ -382,9 +382,34 @@ export default function BillingPage() {
         const formattedPhone = phone.startsWith('0') ? '62' + phone.slice(1) : phone;
 
         const invoiceLink = `${window.location.origin}/invoice/${payment.id}`;
-        const message = `Halo ${customer.name},%0A%0ATerima kasih telah melakukan pembayaran layanan internet.%0ABerikut detail pembayaran Anda:%0A%0ANo. Pelanggan: ${customer.customerNumber || payment.username}%0APeriode Tagihan: ${new Date(payment.date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}%0AJumlah Tagihan: ${formatCurrency(payment.amount)}%0A%0ALihat Invoice: ${invoiceLink}%0A%0ATerima kasih atas kepercayaan Anda.%0A${invoiceSettings.companyName}`;
+        const periode = new Date(payment.date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+        const tanggal = new Date(payment.date).toLocaleDateString('id-ID');
+        const amount = formatCurrency(payment.amount);
+        const companyName = invoiceSettings.companyName || 'ISP';
 
-        window.open(`https://wa.me/${formattedPhone}?text=${message}`, '_blank');
+        // Thermal printer style receipt
+        const message = `\`\`\`
+================================
+      ${companyName.toUpperCase()}
+================================
+No. Invoice : ${payment.id?.slice(0, 8) || '-'}
+Tanggal     : ${tanggal}
+--------------------------------
+Pelanggan   : ${customer.name}
+No. Plgn    : ${customer.customerNumber || payment.username}
+Periode     : ${periode}
+--------------------------------
+JUMLAH BAYAR: ${amount}
+--------------------------------
+Status      : LUNAS ✓
+================================
+      Terima Kasih
+================================
+\`\`\`
+
+📄 Invoice: ${invoiceLink}`;
+
+        window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
     };
 
     return (
