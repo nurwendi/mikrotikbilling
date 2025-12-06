@@ -393,6 +393,7 @@ export default function BillingPage() {
         const companyName = invoiceSettings.companyName || 'ISP';
 
         const message = `*INVOICE PEMBAYARAN*
+\`\`\`
 ${companyName.toUpperCase()}
 ================================
 No. Invoice : ${String(payment.id || '').slice(0, 8) || '-'}
@@ -400,10 +401,11 @@ Tanggal     : ${tanggal}
 Pelanggan   : ${customer.name}
 Periode     : ${periode}
 --------------------------------
-*JUMLAH     : ${amount}*
+JUMLAH      : ${amount}
 Status      : LUNAS
 ================================
 Terima Kasih
+\`\`\`
 
 Link Invoice PDF:
 ${invoiceLink}`;
