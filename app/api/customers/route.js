@@ -61,27 +61,35 @@ export async function POST(request) {
         const body = await request.json();
         const { username, name, address, phone, customerNumber } = body;
 
+        console.log(`[API] Updating customer data for username: ${username}`, body);
+
         if (!username) {
             return NextResponse.json({ error: 'Username is required' }, { status: 400 });
         }
 
         const customers = readCustomerData();
 
-        let agentId = body.agentId || '';
-        let technicianId = body.technicianId || '';
+        let agentId = body.agentId;
+        let technicianId = body.technicianId;
 
-        // Auto-assign if creator is restricted
+        // Auto-assign if creator is restricted and IDs are not provided
         const user = getUserFromRequest(request);
         if (user) {
             try {
-                if (user.isAgent) agentId = user.id;
-                if (user.isTechnician) technicianId = user.id;
+                if (user.isAgent && !agentId) agentId = user.id;
+                if (user.isTechnician && !technicianId) technicianId = user.id;
             } catch (e) {
                 // Ignore
             }
         }
 
+        const existingData = customers[username] || {};
         let finalCustomerNumber = customerNumber;
+
+        // Preserve existing customer number if not provided in update
+        if (!finalCustomerNumber && existingData.customerNumber) {
+            finalCustomerNumber = existingData.customerNumber;
+        }
 
         if (!finalCustomerNumber) {
             // Auto-generate customer number (Simple Integer starting from 10001)
@@ -89,7 +97,6 @@ export async function POST(request) {
             for (const key in customers) {
                 const cust = customers[key];
                 if (cust.customerNumber) {
-                    // Try to parse as integer
                     const numPart = parseInt(cust.customerNumber);
                     if (!isNaN(numPart) && numPart > maxId) {
                         maxId = numPart;
@@ -99,18 +106,24 @@ export async function POST(request) {
             finalCustomerNumber = String(maxId + 1);
         }
 
+        // MERGE DATA: Keep existing fields unless overwritten, handle empty strings correctly
         customers[username] = {
-            name: name || '',
-            address: address || '',
-            phone: phone || '',
+            ...existingData,
+            name: name !== undefined ? name : (existingData.name || ''),
+            address: address !== undefined ? address : (existingData.address || ''),
+            phone: phone !== undefined ? phone : (existingData.phone || ''),
             customerNumber: finalCustomerNumber,
-            agentId: agentId,
-            technicianId: technicianId
+            agentId: agentId !== undefined ? agentId : (existingData.agentId || ''),
+            technicianId: technicianId !== undefined ? technicianId : (existingData.technicianId || ''),
+            updatedAt: new Date().toISOString()
         };
 
         writeCustomerData(customers);
+        console.log(`[API] Customer data saved for ${username}`);
+
         return NextResponse.json({ success: true, customer: customers[username] });
     } catch (error) {
+        console.error('[API] Error saving customer data:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
