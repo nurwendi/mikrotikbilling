@@ -371,7 +371,54 @@ export default function BillingPage() {
         return sorted;
     };
 
+    const getWhatsAppFormattedUrl = (payment) => {
+        const customer = customersData[payment.username];
+        if (!customer) {
+            return { error: `Data pelanggan tidak ditemukan untuk username: ${payment.username}` };
+        }
+
+        if (!customer.phone) {
+            return { error: `Nomor HP pelanggan belum diisi` };
+        }
+
+        let phone = customer.phone.replace(/\D/g, '');
+        const formattedPhone = phone.startsWith('0') ? '62' + phone.slice(1) : phone;
+
+        const invoiceLink = `${window.location.origin}/invoice/${payment.id}`;
+        const periode = new Date(payment.date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+        const tanggal = new Date(payment.date).toLocaleDateString('id-ID');
+        const amount = formatCurrency(payment.amount);
+        const companyName = invoiceSettings.companyName || 'ISP';
+
+        const message = `*INVOICE PEMBAYARAN*
+${companyName.toUpperCase()}
+================================
+No. Invoice : ${payment.id?.slice(0, 8) || '-'}
+Tanggal     : ${tanggal}
+Pelanggan   : ${customer.name}
+Periode     : ${periode}
+--------------------------------
+*JUMLAH     : ${amount}*
+Status      : LUNAS
+================================
+Terima Kasih
+
+Link Invoice PDF:
+${invoiceLink}`;
+
+        return { url: `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}` };
+    };
+
     const handleSendWhatsApp = (payment) => {
+        const result = getWhatsAppFormattedUrl(payment);
+        if (result.error) {
+            alert(result.error);
+            return;
+        }
+        window.open(result.url, '_blank');
+    };
+
+    const _unused_handleSendWhatsApp = (payment) => {
         console.log('handleSendWhatsApp called for:', payment);
 
         const customer = customersData[payment.username];
@@ -1213,12 +1260,21 @@ ${invoiceLink}`;
                                     </>
                                 )}
                                 {selectedInvoice.status === 'completed' && (
-                                    <button
-                                        onClick={() => handleSendWhatsApp(selectedInvoice)}
-                                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2"
+                                    <a
+                                        href={getWhatsAppFormattedUrl(selectedInvoice).url || '#'}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => {
+                                            const res = getWhatsAppFormattedUrl(selectedInvoice);
+                                            if (res.error) {
+                                                e.preventDefault();
+                                                alert(res.error);
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2 cursor-pointer"
                                     >
                                         <MessageCircle size={18} /> Kirim WhatsApp
-                                    </button>
+                                    </a>
                                 )}
                             </div>
                         </motion.div>
