@@ -12,25 +12,31 @@ export async function GET(request) {
         let users = await client.write('/ppp/secret/print');
 
         // Filter based on role
-        const authToken = request.cookies.get('auth_token');
-        if (authToken) {
+        const user = await getUserFromRequest(request);
+        if (user && user.role !== 'admin') {
             try {
-                const user = JSON.parse(authToken.value);
-                if (user.role === 'agent' || user.role === 'technician') {
+                // If role is agent, technician, or partner - filter the list
+                if (user.role === 'agent' || user.role === 'technician' || user.role === 'partner') {
                     // Load customers to check assignment
                     const data = await fs.readFile(CUSTOMER_DATA_PATH, 'utf8');
                     const customers = JSON.parse(data);
 
                     const allowedUsernames = new Set();
                     for (const [key, val] of Object.entries(customers)) {
-                        if (user.role === 'agent' && val.agentId === user.id) allowedUsernames.add(key);
-                        if (user.role === 'technician' && val.technicianId === user.id) allowedUsernames.add(key);
+                        // Check Agent/Partner assignment
+                        if ((user.role === 'agent' || user.role === 'partner') && val.agentId === user.id) {
+                            allowedUsernames.add(key);
+                        }
+                        // Check Technician assignment
+                        if (user.role === 'technician' && val.technicianId === user.id) {
+                            allowedUsernames.add(key);
+                        }
                     }
 
                     users = users.filter(u => allowedUsernames.has(u.name));
                 }
             } catch (e) {
-                // Ignore token parse error
+                console.error('Error filtering users:', e);
             }
         }
 
