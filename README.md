@@ -20,6 +20,7 @@ A comprehensive PPPoE billing and user management system for MikroTik routers.
 - ✅ Automatic Backups
 - ✅ Dark Mode Support
 - ✅ **Mobile Optimized UI** (Bottom Nav, Dynamic Transitions) 🆕
+- ✅ **App Settings Access & Role-Based Visibility** 🆕
 
 ## 📋 System Requirements
 

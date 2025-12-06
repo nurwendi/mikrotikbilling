@@ -722,16 +722,7 @@ ${invoiceLink}`;
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-
-                                    <th
-                                        onClick={() => sortData('date')}
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                                    >
-                                        <div className="flex items-center gap-1">
-                                            Date
-                                            <ArrowUpDown size={14} />
-                                        </div>
-                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                     <th
                                         onClick={() => sortData('customer')}
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
@@ -762,7 +753,15 @@ ${invoiceLink}`;
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Technician</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <th
+                                        onClick={() => sortData('date')}
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Date
+                                            <ArrowUpDown size={14} />
+                                        </div>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
@@ -774,8 +773,28 @@ ${invoiceLink}`;
                                     getSortedPayments().map((payment) => (
                                         <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
 
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {formatDate(payment.date)}
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button
+                                                    onClick={async () => {
+                                                        setSelectedInvoice(payment);
+
+                                                        await fetchCustomerDetails(payment.username);
+                                                        // Small delay to ensure state is updated
+                                                        setTimeout(() => setShowInvoiceModal(true), 100);
+                                                    }}
+                                                    className="text-blue-600 hover:text-blue-900"
+                                                >
+                                                    View Invoice
+                                                </button>
+                                                {payment.status === 'completed' && (
+                                                    <button
+                                                        onClick={() => handleSendWhatsApp(payment)}
+                                                        className="text-green-600 hover:text-green-900 ml-3"
+                                                        title="Kirim WhatsApp"
+                                                    >
+                                                        <MessageCircle size={18} />
+                                                    </button>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                 <div>
@@ -806,28 +825,8 @@ ${invoiceLink}`;
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {getTechnicianName(payment.username)}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <button
-                                                    onClick={async () => {
-                                                        setSelectedInvoice(payment);
-
-                                                        await fetchCustomerDetails(payment.username);
-                                                        // Small delay to ensure state is updated
-                                                        setTimeout(() => setShowInvoiceModal(true), 100);
-                                                    }}
-                                                    className="text-blue-600 hover:text-blue-900"
-                                                >
-                                                    View Invoice
-                                                </button>
-                                                {payment.status === 'completed' && (
-                                                    <button
-                                                        onClick={() => handleSendWhatsApp(payment)}
-                                                        className="text-green-600 hover:text-green-900 ml-3"
-                                                        title="Kirim WhatsApp"
-                                                    >
-                                                        <MessageCircle size={18} />
-                                                    </button>
-                                                )}
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {formatDate(payment.date)}
                                             </td>
                                         </tr>
                                     ))

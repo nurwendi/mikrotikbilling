@@ -79,7 +79,7 @@ export default function Sidebar() {
     return (
         <>
             {/* Mobile Bottom Navigation */}
-            <div className="lg:hidden fixed bottom-0 left-0 w-full bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50 flex justify-around items-center py-3 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <div className="lg:hidden fixed bottom-0 left-0 w-full bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50 flex justify-around items-center py-3 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] print:hidden">
                 <Link href="/" className={`p-2 rounded-lg ${pathname === '/' ? 'text-blue-600 bg-blue-50 dark:bg-gray-700 dark:text-blue-400' : 'text-gray-500 hover:text-blue-600 dark:text-gray-400'}`}>
                     <Home size={24} />
                 </Link>
@@ -204,19 +204,17 @@ export default function Sidebar() {
                         ))}
                     </nav>
 
-                    {userRole === 'admin' && (
-                        <Link
-                            href="/app-settings"
-                            onClick={closeSidebar}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${pathname === '/app-settings'
-                                ? 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-white'
-                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-white'
-                                }`}
-                        >
-                            <Settings size={20} />
-                            <span>App Settings</span>
-                        </Link>
-                    )}
+                    <Link
+                        href="/app-settings"
+                        onClick={closeSidebar}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${pathname === '/app-settings'
+                            ? 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-white'
+                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-white'
+                            }`}
+                    >
+                        <Settings size={20} />
+                        <span>App Settings</span>
+                    </Link>
 
 
 

@@ -11,6 +11,7 @@ export default function AppSettingsPage() {
 
     const router = useRouter();
 
+    const [userRole, setUserRole] = useState(null);
     const [settings, setSettings] = useState({
         appName: 'Mikrotik Manager',
         logoUrl: '',
@@ -41,6 +42,13 @@ export default function AppSettingsPage() {
     const [message, setMessage] = useState({ type: '', text: '' });
 
     useEffect(() => {
+        fetch('/api/auth/me')
+            .then(res => {
+                if (res.ok) return res.json();
+                throw new Error('Failed to fetch user');
+            })
+            .then(data => setUserRole(data.user.role))
+            .catch(() => setUserRole(null));
         fetchSettings();
         fetchPreferences();
     }, []);
@@ -280,321 +288,329 @@ export default function AppSettingsPage() {
 
 
             {/* Display Preferences */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex items-center gap-3 mb-4">
-                    <Clock className="text-blue-600" size={24} />
-                    <h2 className="text-xl font-semibold text-gray-800">Display Preferences</h2>
-                </div>
-
-                <form onSubmit={handleSavePreferences} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Date Format
-                            </label>
-                            <select
-                                value={preferences.display.dateFormat}
-                                onChange={(e) => setPreferences({
-                                    ...preferences,
-                                    display: { ...preferences.display, dateFormat: e.target.value }
-                                })}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                            >
-                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Time Format
-                            </label>
-                            <select
-                                value={preferences.display.timeFormat}
-                                onChange={(e) => setPreferences({
-                                    ...preferences,
-                                    display: { ...preferences.display, timeFormat: e.target.value }
-                                })}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                            >
-                                <option value="12h">12-hour</option>
-                                <option value="24h">24-hour</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Bandwidth Unit
-                            </label>
-                            <select
-                                value={preferences.display.bandwidthUnit}
-                                onChange={(e) => setPreferences({
-                                    ...preferences,
-                                    display: { ...preferences.display, bandwidthUnit: e.target.value }
-                                })}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                            >
-                                <option value="auto">Auto</option>
-                                <option value="bps">bps</option>
-                                <option value="Kbps">Kbps</option>
-                                <option value="Mbps">Mbps</option>
-                                <option value="Gbps">Gbps</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Memory Unit
-                            </label>
-                            <select
-                                value={preferences.display.memoryUnit}
-                                onChange={(e) => setPreferences({
-                                    ...preferences,
-                                    display: { ...preferences.display, memoryUnit: e.target.value }
-                                })}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                            >
-                                <option value="auto">Auto</option>
-                                <option value="B">Bytes</option>
-                                <option value="KB">KB</option>
-                                <option value="MB">MB</option>
-                                <option value="GB">GB</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Temperature Unit
-                            </label>
-                            <select
-                                value={preferences.display.temperatureUnit}
-                                onChange={(e) => setPreferences({
-                                    ...preferences,
-                                    display: { ...preferences.display, temperatureUnit: e.target.value }
-                                })}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                            >
-                                <option value="celsius">Celsius (°C)</option>
-                                <option value="fahrenheit">Fahrenheit (°F)</option>
-                            </select>
-                        </div>
+            {userRole === 'admin' && (
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                        <Clock className="text-blue-600" size={24} />
+                        <h2 className="text-xl font-semibold text-gray-800">Display Preferences</h2>
                     </div>
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
-                    >
-                        <Save size={18} />
-                        {loading ? 'Saving...' : 'Save Preferences'}
-                    </button>
-                </form>
-            </div>
+                    <form onSubmit={handleSavePreferences} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Date Format
+                                </label>
+                                <select
+                                    value={preferences.display.dateFormat}
+                                    onChange={(e) => setPreferences({
+                                        ...preferences,
+                                        display: { ...preferences.display, dateFormat: e.target.value }
+                                    })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                >
+                                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                </select>
+                            </div>
 
-            {/* Dashboard Settings */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex items-center gap-3 mb-4">
-                    <Gauge className="text-blue-600" size={24} />
-                    <h2 className="text-xl font-semibold text-gray-800">Dashboard Settings</h2>
-                </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Time Format
+                                </label>
+                                <select
+                                    value={preferences.display.timeFormat}
+                                    onChange={(e) => setPreferences({
+                                        ...preferences,
+                                        display: { ...preferences.display, timeFormat: e.target.value }
+                                    })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                >
+                                    <option value="12h">12-hour</option>
+                                    <option value="24h">24-hour</option>
+                                </select>
+                            </div>
 
-                <form onSubmit={handleSavePreferences} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Auto-Refresh Interval
-                        </label>
-                        <select
-                            value={preferences.dashboard.refreshInterval}
-                            onChange={(e) => setPreferences({
-                                ...preferences,
-                                dashboard: { ...preferences.dashboard, refreshInterval: parseInt(e.target.value) }
-                            })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                        >
-                            <option value="0">Disabled</option>
-                            <option value="5000">5 seconds</option>
-                            <option value="10000">10 seconds</option>
-                            <option value="30000">30 seconds</option>
-                            <option value="60000">1 minute</option>
-                            <option value="300000">5 minutes</option>
-                        </select>
-                    </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Bandwidth Unit
+                                </label>
+                                <select
+                                    value={preferences.display.bandwidthUnit}
+                                    onChange={(e) => setPreferences({
+                                        ...preferences,
+                                        display: { ...preferences.display, bandwidthUnit: e.target.value }
+                                    })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                >
+                                    <option value="auto">Auto</option>
+                                    <option value="bps">bps</option>
+                                    <option value="Kbps">Kbps</option>
+                                    <option value="Mbps">Mbps</option>
+                                    <option value="Gbps">Gbps</option>
+                                </select>
+                            </div>
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
-                    >
-                        <Save size={18} />
-                        {loading ? 'Saving...' : 'Save Dashboard Settings'}
-                    </button>
-                </form>
-            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Memory Unit
+                                </label>
+                                <select
+                                    value={preferences.display.memoryUnit}
+                                    onChange={(e) => setPreferences({
+                                        ...preferences,
+                                        display: { ...preferences.display, memoryUnit: e.target.value }
+                                    })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                >
+                                    <option value="auto">Auto</option>
+                                    <option value="B">Bytes</option>
+                                    <option value="KB">KB</option>
+                                    <option value="MB">MB</option>
+                                    <option value="GB">GB</option>
+                                </select>
+                            </div>
 
-            {/* Appearance Settings */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex items-center gap-3 mb-4">
-                    <ImageIcon className="text-blue-600" size={24} />
-                    <h2 className="text-xl font-semibold text-gray-800">Appearance</h2>
-                </div>
-
-                <form onSubmit={handleSaveAppearance}>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Application Name
-                        </label>
-                        <input
-                            type="text"
-                            value={settings.appName}
-                            onChange={(e) => setSettings({ ...settings, appName: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                            placeholder="Mikrotik Manager"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Upload Logo (PNG)
-                            </label>
-                            <input
-                                type="file"
-                                accept="image/png"
-                                onChange={(e) => handleFileUpload(e, 'logo')}
-                                className="block w-full text-sm text-gray-500
-                                file:mr-4 file:py-2 file:px-4
-                                file:rounded-full file:border-0
-                                file:text-sm file:font-semibold
-                                file:bg-blue-50 file:text-blue-700
-                                hover:file:bg-blue-100"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">Replaces the app logo. Recommended size: 512x512px.</p>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Upload Favicon (ICO)
-                            </label>
-                            <input
-                                type="file"
-                                accept=".ico"
-                                onChange={(e) => handleFileUpload(e, 'favicon')}
-                                className="block w-full text-sm text-gray-500
-                                file:mr-4 file:py-2 file:px-4
-                                file:rounded-full file:border-0
-                                file:text-sm file:font-semibold
-                                file:bg-blue-50 file:text-blue-700
-                                hover:file:bg-blue-100"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">Replaces the browser tab icon.</p>
-                        </div>
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Or use Logo URL
-                        </label>
-                        <input
-                            type="text"
-                            value={settings.logoUrl}
-                            onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                            placeholder="https://example.com/logo.png"
-                        />
-                    </div>
-
-                    {settings.logoUrl && (
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Logo Preview
-                            </label>
-                            <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-                                <img
-                                    src={settings.logoUrl}
-                                    alt="Logo preview"
-                                    className="h-12 object-contain"
-                                    onError={(e) => {
-                                        e.target.style.display = 'none';
-                                        e.target.nextSibling.style.display = 'block';
-                                    }}
-                                />
-                                <p className="text-red-500 text-sm hidden">Failed to load image</p>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Temperature Unit
+                                </label>
+                                <select
+                                    value={preferences.display.temperatureUnit}
+                                    onChange={(e) => setPreferences({
+                                        ...preferences,
+                                        display: { ...preferences.display, temperatureUnit: e.target.value }
+                                    })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                >
+                                    <option value="celsius">Celsius (°C)</option>
+                                    <option value="fahrenheit">Fahrenheit (°F)</option>
+                                </select>
                             </div>
                         </div>
-                    )}
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
-                    >
-                        <Save size={18} />
-                        {loading ? 'Saving...' : 'Save Appearance'}
-                    </button>
-                </form>
-            </div>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+                        >
+                            <Save size={18} />
+                            {loading ? 'Saving...' : 'Save Preferences'}
+                        </button>
+                    </form>
+                </div>
+            )}
+
+            {/* Dashboard Settings */}
+            {userRole === 'admin' && (
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                        <Gauge className="text-blue-600" size={24} />
+                        <h2 className="text-xl font-semibold text-gray-800">Dashboard Settings</h2>
+                    </div>
+
+                    <form onSubmit={handleSavePreferences} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Auto-Refresh Interval
+                            </label>
+                            <select
+                                value={preferences.dashboard.refreshInterval}
+                                onChange={(e) => setPreferences({
+                                    ...preferences,
+                                    dashboard: { ...preferences.dashboard, refreshInterval: parseInt(e.target.value) }
+                                })}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                            >
+                                <option value="0">Disabled</option>
+                                <option value="5000">5 seconds</option>
+                                <option value="10000">10 seconds</option>
+                                <option value="30000">30 seconds</option>
+                                <option value="60000">1 minute</option>
+                                <option value="300000">5 minutes</option>
+                            </select>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+                        >
+                            <Save size={18} />
+                            {loading ? 'Saving...' : 'Save Dashboard Settings'}
+                        </button>
+                    </form>
+                </div>
+            )}
+
+            {/* Appearance Settings */}
+            {userRole === 'admin' && (
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                        <ImageIcon className="text-blue-600" size={24} />
+                        <h2 className="text-xl font-semibold text-gray-800">Appearance</h2>
+                    </div>
+
+                    <form onSubmit={handleSaveAppearance}>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Application Name
+                            </label>
+                            <input
+                                type="text"
+                                value={settings.appName}
+                                onChange={(e) => setSettings({ ...settings, appName: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                placeholder="Mikrotik Manager"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Upload Logo (PNG)
+                                </label>
+                                <input
+                                    type="file"
+                                    accept="image/png"
+                                    onChange={(e) => handleFileUpload(e, 'logo')}
+                                    className="block w-full text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-full file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-blue-50 file:text-blue-700
+                                hover:file:bg-blue-100"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Replaces the app logo. Recommended size: 512x512px.</p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Upload Favicon (ICO)
+                                </label>
+                                <input
+                                    type="file"
+                                    accept=".ico"
+                                    onChange={(e) => handleFileUpload(e, 'favicon')}
+                                    className="block w-full text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-full file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-blue-50 file:text-blue-700
+                                hover:file:bg-blue-100"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Replaces the browser tab icon.</p>
+                            </div>
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Or use Logo URL
+                            </label>
+                            <input
+                                type="text"
+                                value={settings.logoUrl}
+                                onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                placeholder="https://example.com/logo.png"
+                            />
+                        </div>
+
+                        {settings.logoUrl && (
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Logo Preview
+                                </label>
+                                <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                                    <img
+                                        src={settings.logoUrl}
+                                        alt="Logo preview"
+                                        className="h-12 object-contain"
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            e.target.nextSibling.style.display = 'block';
+                                        }}
+                                    />
+                                    <p className="text-red-500 text-sm hidden">Failed to load image</p>
+                                </div>
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+                        >
+                            <Save size={18} />
+                            {loading ? 'Saving...' : 'Save Appearance'}
+                        </button>
+                    </form>
+                </div>
+            )}
 
             {/* Admin User Settings */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex items-center gap-3 mb-4">
-                    <Key className="text-blue-600" size={24} />
-                    <h2 className="text-xl font-semibold text-gray-800">Change Admin Password</h2>
+            {userRole === 'admin' && (
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                        <Key className="text-blue-600" size={24} />
+                        <h2 className="text-xl font-semibold text-gray-800">Change Admin Password</h2>
+                    </div>
+
+                    <form onSubmit={handleChangePassword}>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Admin Username
+                            </label>
+                            <input
+                                type="text"
+                                value={settings.adminUsername}
+                                onChange={(e) => setSettings({ ...settings, adminUsername: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                placeholder="admin"
+                                required
+                            />
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                New Password
+                            </label>
+                            <input
+                                type="password"
+                                value={settings.newPassword}
+                                onChange={(e) => setSettings({ ...settings, newPassword: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                placeholder="Enter new password"
+                                required
+                            />
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Confirm Password
+                            </label>
+                            <input
+                                type="password"
+                                value={settings.confirmPassword}
+                                onChange={(e) => setSettings({ ...settings, confirmPassword: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                placeholder="Confirm new password"
+                                required
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+                        >
+                            <User size={18} />
+                            {loading ? 'Changing...' : 'Change Password'}
+                        </button>
+                    </form>
                 </div>
-
-                <form onSubmit={handleChangePassword}>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Admin Username
-                        </label>
-                        <input
-                            type="text"
-                            value={settings.adminUsername}
-                            onChange={(e) => setSettings({ ...settings, adminUsername: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                            placeholder="admin"
-                            required
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            New Password
-                        </label>
-                        <input
-                            type="password"
-                            value={settings.newPassword}
-                            onChange={(e) => setSettings({ ...settings, newPassword: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                            placeholder="Enter new password"
-                            required
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Confirm Password
-                        </label>
-                        <input
-                            type="password"
-                            value={settings.confirmPassword}
-                            onChange={(e) => setSettings({ ...settings, confirmPassword: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                            placeholder="Confirm new password"
-                            required
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
-                    >
-                        <User size={18} />
-                        {loading ? 'Changing...' : 'Change Password'}
-                    </button>
-                </form>
-            </div>
+            )}
         </div>
     );
 }
