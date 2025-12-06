@@ -184,8 +184,14 @@ export async function GET(request) {
                 }
             });
 
-        } else if (currentUser.role === 'partner' || currentUser.isAgent || currentUser.isTechnician) {
+        } else if (currentUser.role === 'partner' || currentUser.role === 'agent' || currentUser.role === 'technician') {
             // Partner View
+            const fullUser = getUser(currentUser.id) || currentUser;
+
+            // Determine capabilities based on role or flags
+            const isAgent = fullUser.isAgent || fullUser.role === 'agent' || fullUser.role === 'partner';
+            const isTechnician = fullUser.isTechnician || fullUser.role === 'technician';
+
             const myStats = {
                 totalRevenue: 0,
                 commission: 0,
@@ -197,19 +203,35 @@ export async function GET(request) {
                 const customer = getCustomer(p.username);
                 if (customer) {
                     const amount = parseFloat(p.amount) || 0;
+                    let countedRevenue = false;
 
-                    if (customer.agentId === currentUser.id && currentUser.isAgent) {
+                    // Check Agent Commission
+                    if (isAgent && customer.agentId === currentUser.id) {
                         if (p.status === 'completed') {
-                            myStats.commission += (amount * (currentUser.agentRate || 0)) / 100;
+                            myStats.commission += (amount * (fullUser.agentRate || 0)) / 100;
                             myStats.totalRevenue += amount;
+                            countedRevenue = true;
+                            myStats.paidCount += 1;
+                        } else {
+                            myStats.unpaidCount += 1;
                         }
                     }
 
-                    if (customer.technicianId === currentUser.id && currentUser.isTechnician) {
+                    // Check Technician Commission
+                    if (isTechnician && customer.technicianId === currentUser.id) {
                         if (p.status === 'completed') {
-                            myStats.commission += (amount * (currentUser.technicianRate || 0)) / 100;
-                            if (customer.agentId !== currentUser.id) {
-                                myStats.totalRevenue += amount;
+                            myStats.commission += (amount * (fullUser.technicianRate || 0)) / 100;
+                            // Avoid double counting revenue if same person is agent & tech
+                            if (!countedRevenue || customer.agentId !== customer.technicianId) {
+                                if (!countedRevenue) {
+                                    myStats.totalRevenue += amount;
+                                    myStats.paidCount += 1;
+                                }
+                            }
+                        } else {
+                            // Only count unpaid if not already counted as agent
+                            if (!isAgent || customer.agentId !== customer.technicianId) {
+                                myStats.unpaidCount += 1;
                             }
                         }
                     }

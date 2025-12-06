@@ -6,6 +6,7 @@ import { Users, Wifi, WifiOff, Cpu, HardDrive, Thermometer, Activity, ArrowUp, A
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { useLanguage } from '@/contexts/LanguageContext';
+import PartnerBillingPage from './billing/partner/page';
 
 export default function DashboardPage() {
     const { t } = useLanguage();
@@ -227,6 +228,11 @@ export default function DashboardPage() {
                 <div className="text-gray-600">{t('common.loading')}</div>
             </div>
         );
+    }
+
+    // Show Partner Dashboard for non-admin roles
+    if (userRole === 'partner' || userRole === 'agent' || userRole === 'technician') {
+        return <PartnerBillingPage />;
     }
 
     return (

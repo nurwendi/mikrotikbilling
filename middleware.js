@@ -35,9 +35,10 @@ export async function middleware(request) {
     }
 
     // Check for restricted roles
-    // If user is a 'partner' (restricted access), prevent access to admin pages
-    if (user.role === 'partner') {
-        const restrictedPaths = ['/settings', '/system-users', '/app-settings'];
+    // If user is NOT admin context, prevent access to admin pages
+    if (user.role !== 'admin') {
+        // Allow /app-settings for all users (for logout/language)
+        const restrictedPaths = ['/settings', '/system-users'];
         if (restrictedPaths.some(path => pathname.startsWith(path))) {
             return NextResponse.redirect(new URL('/', request.url));
         }
