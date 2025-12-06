@@ -388,9 +388,8 @@ export default function BillingPage() {
         const companyName = invoiceSettings.companyName || 'ISP';
 
         // Thermal printer style receipt
-        const message = `\`\`\`
-================================
-      ${companyName.toUpperCase()}
+        const message = `================================
+      *${companyName.toUpperCase()}*
 ================================
 No. Invoice : ${payment.id?.slice(0, 8) || '-'}
 Tanggal     : ${tanggal}
@@ -399,13 +398,12 @@ Pelanggan   : ${customer.name}
 No. Plgn    : ${customer.customerNumber || payment.username}
 Periode     : ${periode}
 --------------------------------
-JUMLAH BAYAR: ${amount}
+*JUMLAH BAYAR: ${amount}*
 --------------------------------
-Status      : LUNAS ✓
+Status      : ✅ LUNAS
 ================================
       Terima Kasih
 ================================
-\`\`\`
 
 📄 Invoice: ${invoiceLink}`;
 
