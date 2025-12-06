@@ -42,6 +42,13 @@ export default function BillingPage() {
     });
     const [baseAmount, setBaseAmount] = useState(0);
     const [isNextMonthIncluded, setIsNextMonthIncluded] = useState(false);
+    const [origin, setOrigin] = useState('');
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setOrigin(window.location.origin);
+        }
+    }, []);
 
 
 
@@ -385,7 +392,6 @@ export default function BillingPage() {
         let phone = customer.phone.replace(/\D/g, '');
         const formattedPhone = phone.startsWith('0') ? '62' + phone.slice(1) : phone;
 
-        const origin = typeof window !== 'undefined' && window.location ? window.location.origin : '';
         const invoiceLink = `${origin}/invoice/${payment.id}`;
         const periode = new Date(payment.date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
         const tanggal = new Date(payment.date).toLocaleDateString('id-ID');
