@@ -1198,16 +1198,16 @@ ${invoiceLink}`;
 
 
                             {/* Actions */}
-                            <div className="flex justify-end gap-3 print:hidden p-6 pt-0">
+                            <div className={`flex ${printFormat === 'thermal' ? 'flex-col gap-2' : 'justify-end gap-3'} print:hidden p-6 pt-0`}>
                                 <button
                                     onClick={() => setShowInvoiceModal(false)}
-                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
                                 >
                                     <X size={18} /> Tutup
                                 </button>
                                 <button
                                     onClick={() => window.print()}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
                                 >
                                     <Printer size={18} /> Cetak Tagihan
                                 </button>
@@ -1239,7 +1239,7 @@ ${invoiceLink}`;
                                                     alert('Error: ' + error.message);
                                                 }
                                             }}
-                                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
                                         >
                                             <DollarSign size={18} /> Bayar Sekarang
                                         </button>
@@ -1265,7 +1265,7 @@ ${invoiceLink}`;
                                                     alert('Error: ' + error.message);
                                                 }
                                             }}
-                                            className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-2"
+                                            className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center justify-center gap-2"
                                         >
                                             <Calendar size={18} /> Tunda Bayar
                                         </button>
@@ -1283,7 +1283,7 @@ ${invoiceLink}`;
                                                 alert(res.error);
                                             }
                                         }}
-                                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2 cursor-pointer"
+                                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center gap-2 cursor-pointer"
                                     >
                                         <MessageCircle size={18} /> Kirim WhatsApp
                                     </a>
