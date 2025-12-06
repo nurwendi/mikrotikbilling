@@ -55,8 +55,8 @@ export async function GET(request) {
 
         // Calculate Stats
         if (currentUser.role === 'admin') {
-            // Admin View: All Agents/Partners
-            const agentStats = {};
+            // Admin View: All Partners (combined agent + technician)
+            const partnerStats = {};
             let grandTotalRevenue = 0;
             let grandTotalCommission = 0;
 
@@ -64,18 +64,26 @@ export async function GET(request) {
                 const customer = getCustomer(p.username);
                 if (customer) {
                     const amount = parseFloat(p.amount) || 0;
-                    let hasPartner = false;
+                    let countedRevenue = false;
 
                     // Check Agent
                     if (customer.agentId) {
                         const agent = getUser(customer.agentId);
                         if (agent) {
-                            if (!agentStats[agent.id]) {
-                                agentStats[agent.id] = {
+                            if (!partnerStats[agent.id]) {
+                                // Calculate combined rate if same person is agent and technician
+                                let combinedRate = agent.agentRate || 0;
+                                if (agent.technicianRate) {
+                                    combinedRate += agent.technicianRate;
+                                }
+
+                                partnerStats[agent.id] = {
                                     id: agent.id,
-                                    name: agent.username,
-                                    role: agent.role,
-                                    rate: agent.agentRate || 0,
+                                    name: agent.fullName || agent.username,
+                                    role: 'partner',
+                                    agentRate: agent.agentRate || 0,
+                                    technicianRate: agent.technicianRate || 0,
+                                    rate: combinedRate,
                                     paidCount: 0,
                                     unpaidCount: 0,
                                     totalRevenue: 0,
@@ -85,11 +93,11 @@ export async function GET(request) {
 
                             if (p.status === 'completed') {
                                 const comm = (amount * (agent.agentRate || 0)) / 100;
-                                agentStats[agent.id].commission += comm;
-                                agentStats[agent.id].totalRevenue += amount;
+                                partnerStats[agent.id].commission += comm;
+                                partnerStats[agent.id].totalRevenue += amount;
                                 grandTotalCommission += comm;
+                                countedRevenue = true;
                             }
-                            hasPartner = true;
                         }
                     }
 
@@ -97,12 +105,20 @@ export async function GET(request) {
                     if (customer.technicianId) {
                         const tech = getUser(customer.technicianId);
                         if (tech) {
-                            if (!agentStats[tech.id]) {
-                                agentStats[tech.id] = {
+                            if (!partnerStats[tech.id]) {
+                                // Calculate combined rate if same person is agent and technician
+                                let combinedRate = tech.technicianRate || 0;
+                                if (tech.agentRate) {
+                                    combinedRate += tech.agentRate;
+                                }
+
+                                partnerStats[tech.id] = {
                                     id: tech.id,
-                                    name: tech.username,
-                                    role: tech.role,
-                                    rate: tech.technicianRate || 0,
+                                    name: tech.fullName || tech.username,
+                                    role: 'partner',
+                                    agentRate: tech.agentRate || 0,
+                                    technicianRate: tech.technicianRate || 0,
+                                    rate: combinedRate,
                                     paidCount: 0,
                                     unpaidCount: 0,
                                     totalRevenue: 0,
@@ -112,13 +128,15 @@ export async function GET(request) {
 
                             if (p.status === 'completed') {
                                 const comm = (amount * (tech.technicianRate || 0)) / 100;
-                                agentStats[tech.id].commission += comm;
-                                if (customer.agentId !== customer.technicianId) {
-                                    agentStats[tech.id].totalRevenue += amount;
+                                partnerStats[tech.id].commission += comm;
+                                // Only add to revenue if not already counted (when same person is agent and tech)
+                                if (!countedRevenue || customer.agentId !== customer.technicianId) {
+                                    if (!countedRevenue) {
+                                        partnerStats[tech.id].totalRevenue += amount;
+                                    }
                                 }
                                 grandTotalCommission += comm;
                             }
-                            hasPartner = true;
                         }
                     }
 
@@ -136,20 +154,13 @@ export async function GET(request) {
             filteredPayments.forEach(p => {
                 const customer = getCustomer(p.username);
                 if (customer) {
-                    if (customer.agentId && agentStats[customer.agentId]) {
+                    // Count for partner (could be agent, technician, or both)
+                    const partnerId = customer.agentId || customer.technicianId;
+                    if (partnerId && partnerStats[partnerId]) {
                         if (p.status === 'completed') {
-                            agentStats[customer.agentId].paidCount += 1;
+                            partnerStats[partnerId].paidCount += 1;
                         } else {
-                            agentStats[customer.agentId].unpaidCount += 1;
-                        }
-                    }
-                    if (customer.technicianId && agentStats[customer.technicianId]) {
-                        if (customer.agentId !== customer.technicianId || !customer.agentId) {
-                            if (p.status === 'completed') {
-                                agentStats[customer.technicianId].paidCount += 1;
-                            } else {
-                                agentStats[customer.technicianId].unpaidCount += 1;
-                            }
+                            partnerStats[partnerId].unpaidCount += 1;
                         }
                     }
                 }
@@ -157,7 +168,7 @@ export async function GET(request) {
 
             return NextResponse.json({
                 role: 'admin',
-                agents: Object.values(agentStats),
+                agents: Object.values(partnerStats),
                 grandTotal: {
                     revenue: grandTotalRevenue,
                     commission: grandTotalCommission,
