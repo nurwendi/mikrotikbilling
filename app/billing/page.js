@@ -372,14 +372,24 @@ export default function BillingPage() {
     };
 
     const handleSendWhatsApp = (payment) => {
+        console.log('handleSendWhatsApp called for:', payment);
+
         const customer = customersData[payment.username];
-        if (!customer || !customer.phone) {
-            alert('Nomor HP pelanggan belum diisi. Silakan lengkapi data pelanggan terlebih dahulu.');
+        console.log('Customer lookup:', { username: payment.username, found: !!customer, data: customer });
+
+        if (!customer) {
+            alert(`Data pelanggan tidak ditemukan untuk username: ${payment.username}. Hubungi admin.`);
             return;
         }
 
-        const phone = customer.phone.replace(/\D/g, '');
+        if (!customer.phone) {
+            alert(`Nomor HP pelanggan belum diisi untuk ${customer.name || payment.username}. Silakan lengkapi data pelanggan terlebih dahulu.`);
+            return;
+        }
+
+        let phone = customer.phone.replace(/\D/g, '');
         const formattedPhone = phone.startsWith('0') ? '62' + phone.slice(1) : phone;
+        console.log('Formatted phone:', formattedPhone);
 
         const invoiceLink = `${window.location.origin}/invoice/${payment.id}`;
         const periode = new Date(payment.date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
@@ -404,8 +414,10 @@ Terima Kasih
 Link Invoice PDF:
 ${invoiceLink}`;
 
-        // Use api.whatsapp.com which is more robust than wa.me
-        window.open(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`, '_blank');
+        const url = `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`;
+        console.log('Opening WhatsApp URL:', url);
+
+        window.open(url, '_blank');
     };
 
     return (
