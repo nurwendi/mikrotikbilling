@@ -133,19 +133,46 @@ export async function POST(request) {
             invoiceNumber = `INV/${yy}/${mm}/${custNumber}/${seq}`;
         }
 
-        const newPayment = {
-            id: Date.now().toString(),
-            date: new Date().toISOString(),
-            status: 'completed', // Default status
-            invoiceNumber,
-            commissions, // Store calculated commissions
-            ...body,
-            // Ensure month/year for PDF receipt if not provided
-            month: body.month !== undefined ? body.month : new Date().getMonth(),
-            year: body.year || new Date().getFullYear()
-        };
+        // Check for existing pending/unpaid invoice for this user/month/year
+        const targetMonth = body.month !== undefined ? parseInt(body.month) : new Date().getMonth();
+        const targetYear = body.year !== undefined ? parseInt(body.year) : new Date().getFullYear();
 
-        payments.push(newPayment);
+        const existingIndex = payments.findIndex(p =>
+            p.username === body.username &&
+            p.month == targetMonth &&
+            p.year == targetYear &&
+            p.status !== 'completed'
+        );
+
+        let newPayment;
+
+        if (existingIndex !== -1) {
+            // Update existing pending invoice
+            payments[existingIndex] = {
+                ...payments[existingIndex],
+                date: new Date().toISOString(),
+                status: 'completed',
+                amount: amount, // Update amount if changed
+                method: body.method || 'cash',
+                notes: body.notes || payments[existingIndex].notes,
+                commissions: commissions, // Update commissions
+                invoiceNumber: invoiceNumber // Keep or update invoice number? Maybe keep original if exists
+            };
+            newPayment = payments[existingIndex];
+        } else {
+            // Create new payment
+            newPayment = {
+                id: Date.now().toString(),
+                date: new Date().toISOString(),
+                status: 'completed', // Default status
+                invoiceNumber,
+                commissions, // Store calculated commissions
+                ...body,
+                month: targetMonth,
+                year: targetYear
+            };
+            payments.push(newPayment);
+        }
 
         await fs.writeFile(paymentsFile, JSON.stringify(payments, null, 2));
 

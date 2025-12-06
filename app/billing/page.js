@@ -1215,30 +1215,18 @@ ${invoiceLink}`;
                                 {selectedInvoice.status !== 'completed' && (
                                     <>
                                         <button
-                                            onClick={async () => {
-                                                if (!confirm('Tandai tagihan ini sebagai lunas?')) return;
-                                                try {
-                                                    const res = await fetch(`/api/billing/payments/${selectedInvoice.id}`, {
-                                                        method: 'PUT',
-                                                        headers: { 'Content-Type': 'application/json' },
-                                                        body: JSON.stringify({
-                                                            status: 'completed',
-                                                            amount: selectedInvoice.amount,
-                                                            notes: selectedInvoice.notes
-                                                        }),
-                                                    });
-                                                    const data = await res.json();
-                                                    if (res.ok) {
-                                                        alert('Pembayaran berhasil dicatat');
-                                                        setShowInvoiceModal(false);
-                                                        fetchData();
-                                                    } else {
-                                                        alert('Gagal update pembayaran: ' + (data.error || 'Unknown error'));
-                                                    }
-                                                } catch (error) {
-                                                    console.error('Failed to update payment', error);
-                                                    alert('Error: ' + error.message);
-                                                }
+                                            onClick={() => {
+                                                setFormData({
+                                                    ...formData,
+                                                    username: selectedInvoice.username,
+                                                    amount: selectedInvoice.amount,
+                                                    method: 'cash',
+                                                    notes: selectedInvoice.notes || ''
+                                                });
+                                                setBaseAmount(selectedInvoice.amount);
+                                                setIsNextMonthIncluded(false);
+                                                setShowInvoiceModal(false);
+                                                setShowModal(true);
                                             }}
                                             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
                                         >
