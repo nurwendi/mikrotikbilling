@@ -384,7 +384,8 @@ export default function BillingPage() {
         let phone = customer.phone.replace(/\D/g, '');
         const formattedPhone = phone.startsWith('0') ? '62' + phone.slice(1) : phone;
 
-        const invoiceLink = `${window.location.origin}/invoice/${payment.id}`;
+        const origin = typeof window !== 'undefined' && window.location ? window.location.origin : '';
+        const invoiceLink = `${origin}/invoice/${payment.id}`;
         const periode = new Date(payment.date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
         const tanggal = new Date(payment.date).toLocaleDateString('id-ID');
         const amount = formatCurrency(payment.amount);
