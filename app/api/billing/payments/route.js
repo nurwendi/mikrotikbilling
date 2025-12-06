@@ -2,7 +2,10 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { NextResponse } from 'next/server';
 import { getUsers } from '@/lib/auth';
+
 import { getUserFromRequest } from '@/lib/api-auth';
+import { generateInvoicePDF } from '@/lib/pdf';
+import { sendPaymentReceiptEmail } from '@/lib/email';
 
 const paymentsFile = path.join(process.cwd(), 'billing-payments.json');
 const customerFile = path.join(process.cwd(), 'customer-data.json');
@@ -132,12 +135,34 @@ export async function POST(request) {
             status: 'completed', // Default status
             invoiceNumber,
             commissions, // Store calculated commissions
-            ...body
+            ...body,
+            // Ensure month/year for PDF receipt if not provided
+            month: body.month !== undefined ? body.month : new Date().getMonth(),
+            year: body.year || new Date().getFullYear()
         };
 
         payments.push(newPayment);
 
         await fs.writeFile(paymentsFile, JSON.stringify(payments, null, 2));
+
+        // Send Email Receipt (Fire and forget, or await to log error)
+        if (customer && customer.email) {
+            try {
+                // Generate PDF
+                const pdfBuffer = await generateInvoicePDF(newPayment, customer);
+                // Send Email
+                await sendPaymentReceiptEmail(customer.email, {
+                    invoiceNumber: newPayment.invoiceNumber,
+                    customerName: customer.name,
+                    amount: newPayment.amount,
+                    date: newPayment.date
+                }, pdfBuffer);
+            } catch (emailError) {
+                console.error('Failed to send receipt email:', emailError);
+                // Don't fail the request, just log it
+            }
+        }
+
         return NextResponse.json({ success: true, payment: newPayment });
     } catch (error) {
         console.error('Payment Error:', error);
