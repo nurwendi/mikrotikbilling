@@ -5,8 +5,10 @@ import { useState, useEffect } from 'react';
 import { Users, Wifi, WifiOff, Cpu, HardDrive, Thermometer, Activity, ArrowUp, ArrowDown, RefreshCw, DollarSign, CreditCard, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function DashboardPage() {
+    const { t } = useLanguage();
 
     const [stats, setStats] = useState({
         pppoeActive: 0,
@@ -222,7 +224,7 @@ export default function DashboardPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="text-gray-600">Loading dashboard...</div>
+                <div className="text-gray-600">{t('common.loading')}</div>
             </div>
         );
     }
@@ -231,7 +233,7 @@ export default function DashboardPage() {
         <div className="space-y-8">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+                <h1 className="text-3xl font-bold text-gray-800">{t('dashboard.title')}</h1>
                 <div className="flex items-center gap-4">
                     <span className="text-sm text-gray-500">
                         Last update: {lastUpdate.toLocaleTimeString()}
@@ -241,7 +243,7 @@ export default function DashboardPage() {
                         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                         <RefreshCw size={18} />
-                        Refresh
+                        {t('common.refresh')}
                     </button>
                 </div>
             </div>
@@ -366,7 +368,7 @@ export default function DashboardPage() {
             {/* System Stats */}
             <div>
                 <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <Cpu className="text-gray-600" /> System Health
+                    <Cpu className="text-gray-600" /> {t('dashboard.systemHealth')}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <StatCard
