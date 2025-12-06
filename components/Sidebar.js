@@ -4,12 +4,14 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, Users, Settings, Server, Activity, LogOut, Menu, X, ChevronDown, ChevronRight, Network, CreditCard, WifiOff, Database, Code } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Sidebar() {
     const pathname = usePathname();
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [isPppoeExpanded, setIsPppoeExpanded] = useState(true);
+    const { t } = useLanguage();
 
     const [userRole, setUserRole] = useState(null);
     const [appSettings, setAppSettings] = useState({ appName: 'Mikrotik Manager', logoUrl: '' });
@@ -54,22 +56,22 @@ export default function Sidebar() {
 
     // Define top nav items
     const topNavItems = [
-        { href: '/', icon: Home, label: 'Dashboard', roles: ['admin', 'partner', 'viewer'] },
-        { href: '/billing', icon: CreditCard, label: 'Billing & Payments', roles: ['admin', 'partner'] },
+        { href: '/', icon: Home, label: t('sidebar.dashboard'), roles: ['admin', 'partner', 'viewer'] },
+        { href: '/billing', icon: CreditCard, label: t('sidebar.billing'), roles: ['admin', 'partner'] },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 
     // Define bottom nav items
     const bottomNavItems = [
-        { href: '/system-users', icon: Users, label: 'System Users', roles: ['admin'] },
-        { href: '/settings', icon: Server, label: 'Connection', roles: ['admin'] },
-        { href: '/backup', icon: Database, label: 'Backup & Restore', roles: ['admin'] },
+        { href: '/system-users', icon: Users, label: t('sidebar.systemUsers'), roles: ['admin'] },
+        { href: '/settings', icon: Server, label: t('sidebar.connection'), roles: ['admin'] },
+        { href: '/backup', icon: Database, label: t('sidebar.backup'), roles: ['admin'] },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 
     const pppoeItems = [
-        { href: '/users', icon: Users, label: 'Users' },
-        { href: '/active', icon: Activity, label: 'Active Connections' },
+        { href: '/users', icon: Users, label: t('sidebar.users') },
+        { href: '/active', icon: Activity, label: t('sidebar.activeConnections') },
         { href: '/offline', icon: WifiOff, label: 'Offline Users' },
-        { href: '/profiles', icon: Settings, label: 'Profiles', roles: ['admin'] },
+        { href: '/profiles', icon: Settings, label: t('sidebar.profiles'), roles: ['admin'] },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 
 

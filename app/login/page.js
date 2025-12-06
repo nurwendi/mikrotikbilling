@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function LoginPage() {
     const [username, setUsername] = useState('');
@@ -10,6 +11,7 @@ export default function LoginPage() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { t } = useLanguage();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -28,7 +30,7 @@ export default function LoginPage() {
                 router.refresh();
             } else {
                 const data = await res.json();
-                setError(data.error || 'Login failed');
+                setError(data.error || t('login.loginFailed'));
             }
         } catch (err) {
             setError('An error occurred');
@@ -50,7 +52,7 @@ export default function LoginPage() {
 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('login.username')}</label>
                         <input
                             type="text"
                             required
@@ -61,7 +63,7 @@ export default function LoginPage() {
                     </div>
 
                     <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('login.password')}</label>
                         <input
                             type="password"
                             required
@@ -82,7 +84,7 @@ export default function LoginPage() {
                         disabled={loading}
                         className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
                     >
-                        {loading ? 'Logging in...' : 'Login'}
+                        {loading ? t('common.loading') : t('login.loginButton')}
                     </button>
                 </form>
             </div>
