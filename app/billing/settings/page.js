@@ -204,79 +204,78 @@ export default function BillingSettingsPage() {
                                 <p className="text-xs text-gray-500">Upload your company logo (PNG, JPG, max 2MB)</p>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Email Settings */}
-                    <div className="md:col-span-2 pt-6 border-t">
-                        <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
-                            <Mail size={20} /> Email Configuration (SMTP)
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Host</label>
-                                <input
-                                    type="text"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-                                    placeholder="smtp.gmail.com"
-                                    value={settings.email?.host || ''}
-                                    onChange={(e) => setSettings({ ...settings, email: { ...settings.email, host: e.target.value } })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Port</label>
-                                <input
-                                    type="number"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-                                    placeholder="587"
-                                    value={settings.email?.port || ''}
-                                    onChange={(e) => setSettings({ ...settings, email: { ...settings.email, port: e.target.value } })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Email/User</label>
-                                <input
-                                    type="email"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-                                    placeholder="your-email@gmail.com"
-                                    value={settings.email?.user || ''}
-                                    onChange={(e) => setSettings({ ...settings, email: { ...settings.email, user: e.target.value } })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Password / App Password</label>
-                                <input
-                                    type="password"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-                                    placeholder={settings.email?.password ? "******" : "Enter App Password"}
-                                    value={settings.email?.password || ''}
-                                    onChange={(e) => setSettings({ ...settings, email: { ...settings.email, password: e.target.value } })}
-                                />
-                            </div>
-                            <div className="md:col-span-2 flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    id="secure"
-                                    checked={settings.email?.secure || false}
-                                    onChange={(e) => setSettings({ ...settings, email: { ...settings.email, secure: e.target.checked } })}
-                                    className="rounded text-blue-600 focus:ring-blue-500"
-                                />
-                                <label htmlFor="secure" className="text-sm text-gray-700">Use Secure Connection (SSL/TLS - Usually for port 465)</label>
+                        {/* Email Settings */}
+                        <div className="md:col-span-2 pt-6 border-t">
+                            <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                                <Mail size={20} /> Email Configuration (SMTP)
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Host</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                                        placeholder="smtp.gmail.com"
+                                        value={settings.email?.host || ''}
+                                        onChange={(e) => setSettings({ ...settings, email: { ...settings.email, host: e.target.value } })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Port</label>
+                                    <input
+                                        type="number"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                                        placeholder="587"
+                                        value={settings.email?.port || ''}
+                                        onChange={(e) => setSettings({ ...settings, email: { ...settings.email, port: e.target.value } })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Email/User</label>
+                                    <input
+                                        type="email"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                                        placeholder="your-email@gmail.com"
+                                        value={settings.email?.user || ''}
+                                        onChange={(e) => setSettings({ ...settings, email: { ...settings.email, user: e.target.value } })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Password / App Password</label>
+                                    <input
+                                        type="password"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                                        placeholder={settings.email?.password ? "******" : "Enter App Password"}
+                                        value={settings.email?.password || ''}
+                                        onChange={(e) => setSettings({ ...settings, email: { ...settings.email, password: e.target.value } })}
+                                    />
+                                </div>
+                                <div className="md:col-span-2 flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        id="secure"
+                                        checked={settings.email?.secure || false}
+                                        onChange={(e) => setSettings({ ...settings, email: { ...settings.email, secure: e.target.checked } })}
+                                        className="rounded text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <label htmlFor="secure" className="text-sm text-gray-700">Use Secure Connection (SSL/TLS - Usually for port 465)</label>
+                                </div>
                             </div>
                         </div>
                     </div>
-            </div>
 
-            <div className="pt-4 border-t border-gray-200 flex justify-end">
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
-                >
-                    <Save size={18} />
-                    {loading ? 'Saving...' : 'Save Settings'}
-                </button>
-            </div>
-        </form>
+                    <div className="pt-4 border-t border-gray-200 flex justify-end">
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+                        >
+                            <Save size={18} />
+                            {loading ? 'Saving...' : 'Save Settings'}
+                        </button>
+                    </div>
+                </form>
             </div >
         </div >
     );
