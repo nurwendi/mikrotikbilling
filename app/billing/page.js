@@ -445,26 +445,14 @@ export default function BillingPage() {
                 {agentStats && agentStats.role === 'admin' && (
                     <div className="space-y-6">
                         {/* Grand Totals */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
                                 <p className="text-blue-100 font-medium mb-1">Total Seluruhnya (Gross)</p>
                                 <h3 className="text-3xl font-bold">{formatCurrency(agentStats.grandTotal.revenue)}</h3>
                             </div>
                             <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
-                                <p className="text-orange-100 font-medium mb-1">Total Komisi Agen</p>
-                                <h3 className="text-3xl font-bold">{formatCurrency(
-                                    agentStats.agents
-                                        .filter(a => systemUsers.find(u => u.id === a.id && u.isAgent))
-                                        .reduce((sum, a) => sum + a.commission, 0)
-                                )}</h3>
-                            </div>
-                            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
-                                <p className="text-purple-100 font-medium mb-1">Total Komisi Teknisi</p>
-                                <h3 className="text-3xl font-bold">{formatCurrency(
-                                    agentStats.agents
-                                        .filter(a => systemUsers.find(u => u.id === a.id && u.isTechnician))
-                                        .reduce((sum, a) => sum + a.commission, 0)
-                                )}</h3>
+                                <p className="text-orange-100 font-medium mb-1">Total Komisi Partner</p>
+                                <h3 className="text-3xl font-bold">{formatCurrency(agentStats.grandTotal.commission)}</h3>
                             </div>
                             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
                                 <p className="text-green-100 font-medium mb-1">Total Hasil (Net)</p>
