@@ -54,8 +54,14 @@ export async function GET(request) {
         // Debug logging
         console.log('=== Agent Stats Debug ===');
         console.log('Filtered Payments Count:', filteredPayments.length);
-        console.log('Customers Data Keys:', Object.keys(customersData));
-        console.log('Users Data:', usersData.map(u => ({ id: u.id, role: u.role, agentRate: u.agentRate })));
+        console.log('Customers Data:', JSON.stringify(customersData, null, 2));
+        console.log('Users Data:', JSON.stringify(usersData, null, 2));
+
+        // Check payments with customer data
+        filteredPayments.forEach(p => {
+            const customer = getCustomer(p.username);
+            console.log(`Payment ${p.username}: customer=${JSON.stringify(customer)}, agentId=${customer?.agentId}, technicianId=${customer?.technicianId}`);
+        });
 
         // Calculate Stats
         if (currentUser.role === 'admin') {
