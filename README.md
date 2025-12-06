@@ -10,7 +10,8 @@ A comprehensive PPPoE billing and user management system for MikroTik routers.
 
 - ✅ Dashboard with real-time stats
 - ✅ PPPoE User Management
-- ✅ Billing & Invoice System
+- ✅ Billing & Invoice System (Auto-Generated)
+- ✅ **Auto Email Payment Receipt (PDF)** 🆕
 - ✅ Customer Data Management
 - ✅ Multi-Router Support
 - ✅ Temperature & CPU Monitoring (3-day graphs)
@@ -18,7 +19,7 @@ A comprehensive PPPoE billing and user management system for MikroTik routers.
 - ✅ Auto-Drop Unpaid Users
 - ✅ Automatic Backups
 - ✅ Dark Mode Support
-- ✅ Mobile Responsive
+- ✅ **Mobile Optimized UI** (Bottom Nav, Dynamic Transitions) 🆕
 
 ## 📋 System Requirements
 
@@ -229,6 +230,7 @@ systemctl restart nginx
 |------|----------|-------------|
 | Daily Backup | 00:00 | Backs up all data to `backups/` folder |
 | Auto-Drop | 01:00 | Disconnects users with overdue payments |
+| Auto-Invoice | 1st of Month 07:00 | Generates invoices for all customers |
 | Traffic Collection | Every minute | Collects bandwidth data |
 | Usage Sync | Every 5 minutes | Syncs user data usage |
 
