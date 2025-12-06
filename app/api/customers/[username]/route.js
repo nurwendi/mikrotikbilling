@@ -25,7 +25,7 @@ function writeCustomerData(data) {
 
 export async function GET(request, { params }) {
     try {
-        const { username } = params;
+        const { username } = await params;
         const customers = readCustomerData();
 
         if (!customers[username]) {
@@ -44,7 +44,7 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
     try {
-        const { username } = params;
+        const { username } = await params;
         const body = await request.json();
         const { name, address, phone } = body;
 
@@ -64,7 +64,7 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
     try {
-        const { username } = params;
+        const { username } = await params;
         const customers = readCustomerData();
 
         delete customers[username];
