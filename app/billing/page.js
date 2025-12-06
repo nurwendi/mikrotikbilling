@@ -395,7 +395,7 @@ export default function BillingPage() {
         const message = `*INVOICE PEMBAYARAN*
 ${companyName.toUpperCase()}
 ================================
-No. Invoice : ${payment.id?.slice(0, 8) || '-'}
+No. Invoice : ${String(payment.id || '').slice(0, 8) || '-'}
 Tanggal     : ${tanggal}
 Pelanggan   : ${customer.name}
 Periode     : ${periode}
